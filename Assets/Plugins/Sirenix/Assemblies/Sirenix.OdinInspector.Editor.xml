@@ -6581,7 +6581,7 @@
         </member>
         <member name="E:Sirenix.OdinInspector.Editor.OdinEditorWindow.OnEndGUI">
             <summary>
-            Occurs at the end the OnGUI method.
+            Occurs at the end the OnGUI method. 
             </summary>
         </member>
         <member name="P:Sirenix.OdinInspector.Editor.OdinEditorWindow.DefaultLabelWidth">

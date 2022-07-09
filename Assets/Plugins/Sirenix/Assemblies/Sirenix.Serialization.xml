@@ -4499,9 +4499,14 @@
             The beginning of the content of an external reference by guid entry.
             </summary>
         </member>
-        <member name="F:Sirenix.Serialization.JsonConfig.EXTERNAL_STRING_REF_SIG">
+        <member name="F:Sirenix.Serialization.JsonConfig.EXTERNAL_STRING_REF_SIG_OLD">
             <summary>
-            The beginning of the content of an external reference by string entry.
+            The beginning of the content of an external reference by string entry. This is an old entry using an invalid data format where the ref string is dumped inline without escaping.
+            </summary>
+        </member>
+        <member name="F:Sirenix.Serialization.JsonConfig.EXTERNAL_STRING_REF_SIG_FIXED">
+            <summary>
+            The beginning of the content of an external reference by string entry. This is a new entry using the valid format where the ref string is written as an escaped string.
             </summary>
         </member>
         <member name="T:Sirenix.Serialization.JsonDataReader">
@@ -5921,6 +5926,11 @@
             Utility class for emitting formatters using the <see cref="N:System.Reflection.Emit"/> namespace.
             <para />
             NOTE: Some platforms do not support emitting. Check whether you can emit on the current platform using <see cref="P:Sirenix.Serialization.Utilities.EmitUtilities.CanEmit"/>.
+            </summary>
+        </member>
+        <member name="F:Sirenix.Serialization.FormatterEmitter.helperFormatterNameId">
+            <summary>
+            Used for generating unique formatter helper type names.
             </summary>
         </member>
         <member name="F:Sirenix.Serialization.FormatterEmitter.PRE_EMITTED_ASSEMBLY_NAME">
