@@ -1,39 +1,53 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Sirenix.OdinInspector;
+using Sirenix.Utilities;
 
 [RequireComponent(typeof(MeshFilter)), RequireComponent(typeof(MeshRenderer))]
 [DisallowMultipleComponent]
-public sealed class PlaneMeshGenerator : MonoBehaviour
+public sealed class PlaneMeshGenerator : SerializedMonoBehaviour
 {
     [FoldoutGroup("Debug options"), SerializeField] private Color vertexColor = new Color(0f, 0f, 0f, 0.5f);
     [FoldoutGroup("Debug options"), SerializeField] private float vertexSize = 0.01f;
     
-    [Title("Common options")]
+    [Title("Generation")]
     [SerializeField, EnumToggleButtons] private Plane plane = Plane.XZ;
     [SerializeField, Indent(1)] private Vector2 size = Vector2.one;
     [SerializeField, Indent(1)] private Vector2 offset = Vector2.zero;
-    [SerializeField, Range(1, 32)] private int resolution = 1;
+    [SerializeField, Range(1, 64)] private int resolution = 1;
 
-    private MeshFilter _meshFilter;
-    private Mesh _mesh;
+    [Title("Modification")]
+    [SerializeField, TypeFilter(
+         filterGetter: nameof(GetModifierTypes),
+         DrawValueNormally = false,
+         DropdownTitle = "Select a modifier"
+     )] private VertexModifier[] modifiers;
 
-    private enum Plane
-    {
-        XY,
-        YZ,
-        XZ
-    }
+    [NonSerialized] private MeshFilter _meshFilter;
+    [NonSerialized] private Mesh _mesh;
+    [NonSerialized] private Vector3[] _vertices;
+    
+    private IEnumerable<Type> GetModifierTypes() => typeof(VertexModifier).Assembly.GetTypes()
+        .Where(x => !x.IsAbstract)
+        .Where(x => !x.IsGenericTypeDefinition)
+        .Where(x => typeof(VertexModifier).IsAssignableFrom(x));
     
     private void OnDrawGizmos()
     {
-        var vertices = GenerateVertices();
-
+        var target = _vertices ?? GenerateVertices();
+        
         Gizmos.color = vertexColor;
-        foreach (var vertex in vertices)
+        target.ForEach(vertex => Gizmos.DrawSphere(transform.position + vertex, vertexSize));
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        modifiers.ForEach(modifier =>
         {
-            Gizmos.DrawSphere(vertex, vertexSize);
-        }
+            modifier.Init(plane, offset).OnDrawGizmosSelected(transform);
+        });
     }
 
     private void Awake()
@@ -44,6 +58,20 @@ public sealed class PlaneMeshGenerator : MonoBehaviour
     private void Update()
     {
         GenerateMesh();
+        ModifyMesh();
+    }
+
+    private void ModifyMesh()
+    {
+        modifiers.ForEach(modifier =>
+        {
+            _vertices = modifier.Init(plane, offset).Modify(_vertices);
+        });
+
+        _mesh.vertices = _vertices;
+        
+        _mesh.RecalculateBounds();
+        _mesh.RecalculateNormals();
     }
 
     private void GenerateMesh()
@@ -55,11 +83,15 @@ public sealed class PlaneMeshGenerator : MonoBehaviour
 
         _mesh.Clear();
 
-        _mesh.vertices = GenerateVertices();
+        _mesh.vertices = _vertices = GenerateVertices();
+        _mesh.uv = _vertices.Select(x => x.ExtractFor(plane) - (-0.5f * new Vector2(size.x, size.y) + offset)).ToArray();
         _mesh.triangles = GenerateTriangles(triangleVertexIndex =>
             triangleVertexIndex % 2 == 0 ? triangleVertexIndex / 2 : triangleVertexIndex / 2 + (resolution + 1)
         );
-        
+
+        _mesh.RecalculateBounds();
+        _mesh.RecalculateNormals();
+
         _meshFilter.mesh = _mesh;
     }
 
@@ -92,24 +124,16 @@ public sealed class PlaneMeshGenerator : MonoBehaviour
         var points = new Vector3[pointsCount];
 
         Vector2 initialPoint = -0.5f * new Vector2(size.x, size.y) + offset;
-        points[0] = ConvertTo3D(initialPoint);
+        points[0] = initialPoint.AsFor(plane);
         
         for (int i = 1; i < pointsCount; i++)
         {
             float x = size.x / resolution * (i % (resolution + 1));
             float y = size.y / resolution * (i / (resolution + 1));
 
-            points[i] = ConvertTo3D(initialPoint + new Vector2(x, y));
+            points[i] = (initialPoint + new Vector2(x, y)).AsFor(plane);
         }
 
         return points;
     }
-
-    private Vector3 ConvertTo3D(Vector2 vec) => plane switch
-    {
-        Plane.XY => new Vector3(vec.x, vec.y, 0f),
-        Plane.YZ => new Vector3(0f, vec.x, vec.y),
-        Plane.XZ => new Vector3(vec.x, 0f, vec.y),
-        _ => Vector3.zero
-    };
 }

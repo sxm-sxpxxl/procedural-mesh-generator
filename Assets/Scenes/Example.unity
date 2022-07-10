@@ -303,9 +303,72 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d5cb3f6516ab5e4ba005c5621f0daa8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes:
+    - Name: modifiers
+      Entry: 7
+      Data: 0|VertexModifier[], Assembly-CSharp
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 1|WaveVertexModifier, Assembly-CSharp
+    - Name: type
+      Entry: 3
+      Data: 0
+    - Name: rippleAroundAxis
+      Entry: 3
+      Data: 1
+    - Name: customAxis
+      Entry: 7
+      Data: UnityEngine.Vector2, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: axis
+      Entry: 3
+      Data: 1
+    - Name: amplitude
+      Entry: 4
+      Data: 0.01
+    - Name: frequency
+      Entry: 3
+      Data: 4
+    - Name: phaseInDeg
+      Entry: 4
+      Data: 0
+    - Name: isMotionEnabled
+      Entry: 5
+      Data: false
+    - Name: motionSpeed
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
   vertexColor: {r: 0, g: 0, b: 0, a: 0.5}
   vertexSize: 0.01
   plane: 2
   size: {x: 1, y: 1}
   offset: {x: 0, y: 0}
-  resolution: 1
+  resolution: 32
