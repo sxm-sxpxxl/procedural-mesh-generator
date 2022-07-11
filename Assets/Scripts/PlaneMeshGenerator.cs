@@ -4,13 +4,19 @@ using System.Linq;
 using UnityEngine;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
+using UnityEditor;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(MeshFilter)), RequireComponent(typeof(MeshRenderer))]
-[DisallowMultipleComponent]
+[DisallowMultipleComponent, ExecuteAlways]
 public sealed class PlaneMeshGenerator : SerializedMonoBehaviour
 {
-    [FoldoutGroup("Debug options"), SerializeField] private Color vertexColor = new Color(0f, 0f, 0f, 0.5f);
-    [FoldoutGroup("Debug options"), SerializeField] private float vertexSize = 0.01f;
+    [SerializeField, FoldoutGroup("Debug options"), LabelText("Show vertices")]
+    private bool isVerticesShowed = true;
+    [SerializeField, FoldoutGroup("Debug options"), Indent, ShowIf(nameof(isVerticesShowed)), LabelText("Color")]
+    private Color vertexColor = new Color(0f, 0f, 0f, 0.5f);
+    [SerializeField, FoldoutGroup("Debug options"), Indent, ShowIf(nameof(isVerticesShowed)), LabelText("Size")]
+    private float vertexSize = 0.01f;
     
     [Title("Generation")]
     [SerializeField, EnumToggleButtons] private Plane plane = Plane.XZ;
@@ -19,7 +25,9 @@ public sealed class PlaneMeshGenerator : SerializedMonoBehaviour
     [SerializeField, Range(1, 64)] private int resolution = 1;
 
     [Title("Modification")]
-    [SerializeField, TypeFilter(
+    [SerializeField, LabelText("Enabled")] private bool isModificationEnabled = true;
+    [Space]
+    [SerializeField, EnableIf(nameof(isModificationEnabled)), TypeFilter(
          filterGetter: nameof(GetModifierTypes),
          DrawValueNormally = false,
          DropdownTitle = "Select a modifier"
@@ -28,6 +36,8 @@ public sealed class PlaneMeshGenerator : SerializedMonoBehaviour
     [NonSerialized] private MeshFilter _meshFilter;
     [NonSerialized] private Mesh _mesh;
     [NonSerialized] private Vector3[] _vertices;
+
+    private MeshFilter MeshFilter => _meshFilter ?? GetComponent<MeshFilter>();
     
     private IEnumerable<Type> GetModifierTypes() => typeof(VertexModifier).Assembly.GetTypes()
         .Where(x => !x.IsAbstract)
@@ -36,6 +46,11 @@ public sealed class PlaneMeshGenerator : SerializedMonoBehaviour
     
     private void OnDrawGizmos()
     {
+        if (isVerticesShowed == false)
+        {
+            return;
+        }
+        
         var target = _vertices ?? GenerateVertices();
         
         Gizmos.color = vertexColor;
@@ -55,10 +70,14 @@ public sealed class PlaneMeshGenerator : SerializedMonoBehaviour
         _meshFilter = GetComponent<MeshFilter>();
     }
 
-    private void Update()
+    private void OnRenderObject()
     {
         GenerateMesh();
-        ModifyMesh();
+
+        if (isModificationEnabled)
+        {
+            ModifyMesh();
+        }
     }
 
     private void ModifyMesh()
@@ -84,7 +103,7 @@ public sealed class PlaneMeshGenerator : SerializedMonoBehaviour
         _mesh.Clear();
 
         _mesh.vertices = _vertices = GenerateVertices();
-        _mesh.uv = _vertices.Select(x => x.ExtractFor(plane) - (-0.5f * new Vector2(size.x, size.y) + offset)).ToArray();
+        _mesh.uv = GenerateUV(_vertices);
         _mesh.triangles = GenerateTriangles(triangleVertexIndex =>
             triangleVertexIndex % 2 == 0 ? triangleVertexIndex / 2 : triangleVertexIndex / 2 + (resolution + 1)
         );
@@ -92,7 +111,7 @@ public sealed class PlaneMeshGenerator : SerializedMonoBehaviour
         _mesh.RecalculateBounds();
         _mesh.RecalculateNormals();
 
-        _meshFilter.mesh = _mesh;
+        MeshFilter.mesh = _mesh;
     }
 
     private int[] GenerateTriangles(Func<int, int> getActualVertexIndex)
@@ -116,6 +135,12 @@ public sealed class PlaneMeshGenerator : SerializedMonoBehaviour
         }
         
         return indices;
+    }
+
+    private Vector2[] GenerateUV(Vector3[] vertices)
+    {
+        Func<Vector2, Vector2> uvExtractor = vertex => (vertex + (0.5f * size) + offset) / size;
+        return vertices.Select(x => uvExtractor.Invoke(x.ExtractFor(plane))).ToArray();
     }
 
     private Vector3[] GenerateVertices()

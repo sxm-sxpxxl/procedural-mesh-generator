@@ -56,7 +56,7 @@ public sealed class WaveVertexModifier : VertexModifier
     {
         base.OnDrawGizmosSelected(relativeTransform);
         
-        if (IsCustomAxisTypeSelected == false)
+        if (IsShowCustomAxis == false)
         {
             return;
         }
