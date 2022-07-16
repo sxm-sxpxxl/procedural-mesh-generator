@@ -31,12 +31,13 @@ public abstract class MeshCreator
 
     protected int[] CreateTriangles(int quadCount, Func<int, RotationDirection> getTraversalOrderByIndex, Func<int, int> getActualVertexIndex)
     {
-        int indicesCount = quadCount * GetQuadIndicesByResolution(_meshData.resolution);
+        int quadIndicesCount = GetQuadIndicesByResolution(_meshData.resolution);
+        int indicesCount = quadCount * quadIndicesCount;
         var indices = new int[indicesCount];
 
         for (int i = 0; i < quadCount; i++)
         {
-            FillWithQuad(indices, 0, getTraversalOrderByIndex(i), getActualVertexIndex);
+            FillWithQuad(indices, i * quadIndicesCount, getTraversalOrderByIndex(i), getActualVertexIndex);
         }
 
         return indices;
@@ -72,13 +73,13 @@ public abstract class MeshCreator
             fifthIndex  = (3 - 2 * (int) traversalOrder) + triangleVertexIndex;
             sixthIndex  = thirdIndex;
 
-            indices[i + 0] = getActualVertexIndex(firstIndex);
-            indices[i + 1] = getActualVertexIndex(secondIndex);
-            indices[i + 2] = getActualVertexIndex(thirdIndex);
+            indices[startIndex + i + 0] = getActualVertexIndex(firstIndex);
+            indices[startIndex + i + 1] = getActualVertexIndex(secondIndex);
+            indices[startIndex + i + 2] = getActualVertexIndex(thirdIndex);
             
-            indices[i + 3] = getActualVertexIndex(fourthIndex);
-            indices[i + 4] = getActualVertexIndex(fifthIndex);
-            indices[i + 5] = getActualVertexIndex(sixthIndex);
+            indices[startIndex + i + 3] = getActualVertexIndex(fourthIndex);
+            indices[startIndex + i + 4] = getActualVertexIndex(fifthIndex);
+            indices[startIndex + i + 5] = getActualVertexIndex(sixthIndex);
 
             repeatedIndex = (int) Mathf.Repeat(triangleVertexIndex, 2 * (resolution + 1));
             triangleVertexIndex += 2 * (1 + (repeatedIndex / 2 % resolution) / Mathf.Max(resolution - 1, 1));

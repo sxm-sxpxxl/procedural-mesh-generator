@@ -49,7 +49,8 @@ public sealed class WaveVertexModifier : VertexModifier
     {
         Axis.OX => Vector3.right,
         Axis.OY => Vector3.up,
-        Axis.OZ => Vector3.forward
+        Axis.OZ => Vector3.forward,
+        _ => Vector3.zero
     };
 
     public override void OnDrawGizmosSelected(Transform relativeTransform)
