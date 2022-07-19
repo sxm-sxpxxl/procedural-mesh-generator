@@ -14,18 +14,31 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
 {
     [SerializeField, FoldoutGroup("Debug options"), LabelText("Show vertices")]
     private bool isVerticesShowed = true;
+    [SerializeField, FoldoutGroup("Debug options"), Indent, ShowIf(nameof(isVerticesShowed)), LabelText("Show labels")]
+    private bool isVertexLabelShowed = true;
     [SerializeField, FoldoutGroup("Debug options"), Indent, ShowIf(nameof(isVerticesShowed)), LabelText("Color")]
     private Color vertexColor = new Color(0f, 0f, 0f, 0.5f);
     [SerializeField, FoldoutGroup("Debug options"), Indent, ShowIf(nameof(isVerticesShowed)), LabelText("Size")]
     private float vertexSize = 0.01f;
     
     [Title("Generation")]
-    [SerializeField] private MeshType meshType = MeshType.Plane;
-    [SerializeField, Indent, ShowIf(nameof(IsPlaneMeshTypeSelected)), EnumToggleButtons] private Plane plane = Plane.XZ;
+    [SerializeField]
+    private MeshType meshType = MeshType.Plane;
+    [SerializeField, Indent, ShowIf(nameof(IsPlaneMeshTypeSelected)), EnumToggleButtons]
+    private Plane plane = Plane.XZ;
+    [SerializeField, Indent, ShowIf(nameof(IsPlaneMeshTypeSelected)), LabelText("Backface culling")]
+    private bool isBackfaceCulling = true;
+    [SerializeField, Indent(2), ShowIf(nameof(IsForwardFacingShowed)), LabelText("Forward facing")]
+    private bool isForwardFacing = true;
     [Space]
-    [SerializeField] private Vector2 size = Vector2.one;
-    [SerializeField] private Vector2 offset = Vector2.zero;
-    [SerializeField, Range(1, 64)] private int resolution = 1;
+    [SerializeField, HideIf(nameof(IsPlaneMeshTypeSelected))]
+    private Vector3 size = Vector3.one;
+    [SerializeField, LabelText("Size"), ShowIf(nameof(IsPlaneMeshTypeSelected))]
+    private Vector2 planeSize = Vector2.one;
+    [SerializeField]
+    private Vector3 offset = Vector3.zero;
+    [SerializeField, Range(1, 32)]
+    private int resolution = 1;
 
     [Title("Modification")]
     [SerializeField, LabelText("Enabled")] private bool isModificationEnabled = true;
@@ -40,7 +53,8 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
 
     private enum MeshType
     {
-        Plane
+        Plane,
+        Cube
     }
 
     private readonly MeshCreatorContext _context = new MeshCreatorContext(new PlaneMeshCreator());
@@ -53,7 +67,9 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
         .Where(x => typeof(VertexModifier).IsAssignableFrom(x));
 
     private bool IsPlaneMeshTypeSelected => meshType == MeshType.Plane;
-    
+
+    private bool IsForwardFacingShowed => IsPlaneMeshTypeSelected && isBackfaceCulling;
+
     private void OnDrawGizmos()
     {
         if (isVerticesShowed == false)
@@ -61,10 +77,18 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
             return;
         }
         
-        var target = MeshFilter.sharedMesh.vertices;
-        
+        var vertices = MeshFilter.sharedMesh.vertices;
         Gizmos.color = vertexColor;
-        target.ForEach(vertex => Gizmos.DrawSphere(transform.position + vertex, vertexSize));
+
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            Gizmos.DrawSphere(transform.position + vertices[i], vertexSize);
+
+            if (isVertexLabelShowed) 
+            {
+                Handles.Label(transform.TransformPoint(vertices[i]), $"V[{i}]");
+            }
+        }
     }
 
     private void OnDrawGizmosSelected()
@@ -103,6 +127,29 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
 
     private void GenerateMesh()
     {
-        MeshFilter.sharedMesh = _context.CreateMesh(new MeshCreator.MeshData(resolution, size, offset, plane));
+        if (meshType == MeshType.Plane) CreatePlane();
+        if (meshType == MeshType.Cube) CreateCube();
+    }
+
+    private void CreateCube()
+    {
+        _context.Set(new CubeMeshCreator());
+        MeshFilter.sharedMesh = _context.CreateMesh(new MeshCreator.MeshData(resolution, size, offset));
+    }
+
+    private void CreatePlane()
+    {
+        _context.Set(new PlaneMeshCreator());
+
+        var mesh = _context.CreateMesh(new MeshCreator.MeshData(resolution, planeSize.AsFor(Plane.XY), offset, isForwardFacing, isBackfaceCulling));
+        var vertices = mesh.vertices;
+
+        for (int i = 0; i < mesh.vertices.Length; i++)
+        {
+            vertices[i] = (vertices[i] - offset).AsFor(plane, tempIndex: 2) + offset;
+        }
+
+        mesh.vertices = vertices;
+        MeshFilter.sharedMesh = mesh;
     }
 }
