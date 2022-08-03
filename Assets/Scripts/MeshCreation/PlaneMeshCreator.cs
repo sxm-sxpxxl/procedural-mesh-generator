@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using UnityEngine;
 
 namespace MeshCreation
@@ -25,29 +23,25 @@ namespace MeshCreation
                 }
             );
 
-            Vector2[] uv = CreateUV(vertexData.vertices);
+            Vector2[] uv = CreateUV(vertexData.vertices, v => Vector3.Scale(
+                (v - offset) + (0.5f * size),
+                new Vector3(1f / size.x, 1f / size.y, 1f / size.z)
+            ));
+            
+            Vector3[] normals = CreateNormals(vertexData.vertices, v => Vector3.forward);
+            
             int[] triangles = CreateTriangles(new QuadData[]
             {
                 new QuadData(RotationDirection.CW, i => i)
             }, vertexData.excludedVerticesMap, _meshData.isForwardFacing, _meshData.isBackfaceCulling);
-
+            
             return new Mesh
             {
                 vertices = vertexData.vertices,
-                uv = CreateUV(vertexData.vertices),
+                uv = uv,
+                normals = normals,
                 triangles = triangles
             };
-        }
-
-        private Vector2[] CreateUV(Vector3[] vertices)
-        {
-            Vector3 size = _meshData.size, offset = _meshData.offset;
-            Func<Vector3, Vector2> uvExtractor = vertex => Vector3.Scale(
-                (vertex + (0.5f * size) + offset),
-                new Vector3(1f / size.x, 1f / size.y, 1f / size.z)
-            );
-
-            return vertices.Select(uvExtractor).ToArray();
         }
     }
 }

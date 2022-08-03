@@ -14,14 +14,21 @@ using MeshCreation;
 public sealed class MeshGenerator : SerializedMonoBehaviour
 {
     [SerializeField, FoldoutGroup("Debug options"), LabelText("Show vertices")]
-    private bool isVerticesShowed = true;
-    [SerializeField, FoldoutGroup("Debug options"), Indent, ShowIf(nameof(isVerticesShowed)), LabelText("Show labels")]
-    private bool isVertexLabelShowed = true;
-    [SerializeField, FoldoutGroup("Debug options"), Indent, ShowIf(nameof(isVerticesShowed)), LabelText("Color")]
+    private bool areVerticesShowed = true;
+    [SerializeField, FoldoutGroup("Debug options"), Indent, ShowIf(nameof(areVerticesShowed)), LabelText("Color")]
     private Color vertexColor = new Color(0f, 0f, 0f, 0.5f);
-    [SerializeField, FoldoutGroup("Debug options"), Indent, ShowIf(nameof(isVerticesShowed)), LabelText("Size")]
+    [SerializeField, FoldoutGroup("Debug options"), Indent, ShowIf(nameof(areVerticesShowed)), LabelText("Size")]
+    [Range(0.01f, 1f)]
     private float vertexSize = 0.01f;
-    
+    [Space]
+    [SerializeField, FoldoutGroup("Debug options"), Indent, ShowIf(nameof(areVerticesShowed)), LabelText("Show labels")]
+    private bool isVertexLabelShowed = true;
+    [SerializeField, FoldoutGroup("Debug options"), Indent, ShowIf(nameof(areVerticesShowed)), LabelText("Show normals")]
+    private bool isVertexNormalShowed = true;
+    [SerializeField, FoldoutGroup("Debug options"), Indent, ShowIf(nameof(areVerticesShowed)), LabelText("Normals size")]
+    [Range(0.1f, 2f)]
+    private float normalsSize = 1f;
+
     [Title("Generation")]
     [SerializeField]
     private MeshType meshType = MeshType.Plane;
@@ -73,21 +80,40 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
 
     private void OnDrawGizmos()
     {
-        if (isVerticesShowed == false)
+        var vertices = MeshFilter.sharedMesh.vertices;
+        var normals = MeshFilter.sharedMesh.normals;
+        
+        if (vertices.Length == 0)
+        {
+            Debug.LogWarning("No vertices.");
+            return;
+        }
+        
+        if (areVerticesShowed == false)
         {
             return;
         }
         
-        var vertices = MeshFilter.sharedMesh.vertices;
-        Gizmos.color = vertexColor;
-
         for (int i = 0; i < vertices.Length; i++)
         {
-            Gizmos.DrawSphere(transform.position + vertices[i], vertexSize);
+            Vector3 currentVertexPosition = transform.TransformPoint(vertices[i]);
 
-            if (isVertexLabelShowed) 
+            Gizmos.color = vertexColor;
+            Gizmos.DrawSphere(currentVertexPosition, vertexSize);
+
+            if (isVertexLabelShowed)
             {
-                Handles.Label(transform.TransformPoint(vertices[i]), $"V[{i}]");
+                Handles.Label(currentVertexPosition, $"V[{i}]");
+            }
+            
+            if (normals.Length == 0)
+            {
+                Debug.LogWarning("No vertex normals.");
+            }
+            else if (isVertexNormalShowed)
+            {
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawRay(currentVertexPosition, normalsSize * normals[i]);
             }
         }
     }
@@ -144,14 +170,20 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
 
         var virtualPlane = Plane.XY;
         var mesh = _context.CreateMesh(new MeshData(resolution, planeSize.AsFor(virtualPlane), offset, isForwardFacing, isBackfaceCulling));
+        
         var vertices = mesh.vertices;
-
+        var uv = mesh.uv;
+        var normals = mesh.normals;
+        
         for (int i = 0; i < mesh.vertices.Length; i++)
         {
             vertices[i] = (vertices[i] - offset).AsFor(plane, virtualPlane) + offset;
+            normals[i] = normals[i].AsFor(plane, virtualPlane);
         }
-
+        
         mesh.vertices = vertices;
+        mesh.normals = normals;
+        
         MeshFilter.sharedMesh = mesh;
     }
 }

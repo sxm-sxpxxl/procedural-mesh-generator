@@ -45,6 +45,59 @@ namespace MeshCreation
 
         protected abstract Mesh CreateMesh();
 
+        protected Vector3[] CreateNormals(in Vector3[] vertices, Func<Vector3, Vector3> getNormalByVertex)
+        {
+            var normals = new Vector3[vertices.Length];
+            for (int i = 0; i < normals.Length; i++)
+            {
+                normals[i] = getNormalByVertex(vertices[i]);
+            }
+
+            return normals;
+        }
+        
+        protected Vector2[] CreateUV(in Vector3[] vertices, Func<Vector3, Vector2> getUVByVertex)
+        {
+            var uv = new Vector2[vertices.Length];
+            for (int i = 0; i < uv.Length; i++)
+            {
+                uv[i] = getUVByVertex(vertices[i]);
+            }
+
+            return uv;
+        }
+
+        protected VertexData CreateVertices(
+            int verticesCount,
+            int excludedVerticesCount,
+            Vector3 initVertexPoint,
+            Func<int, Vector3> getVertexPointByIndex,
+            Func<int, bool> isVertexValid = null
+        )
+        {
+            int allVerticesCount = verticesCount + excludedVerticesCount;
+
+            var vertices = new Vector3[verticesCount];
+            var excludedVerticesMap = new int[allVerticesCount];
+
+            vertices[0] = initVertexPoint;
+            for (int i = 1, vIndex = 1, invalidCount = 0; i < allVerticesCount; i++)
+            {
+                if ((isVertexValid?.Invoke(i) ?? true) == false)
+                {
+                    invalidCount++;
+                    excludedVerticesMap[i] = -1;
+                    continue;
+                }
+
+                vertices[vIndex] = initVertexPoint + getVertexPointByIndex(i);
+                excludedVerticesMap[i] = i - invalidCount;
+                vIndex++;
+            }
+
+            return new VertexData(vertices, excludedVerticesMap);
+        }
+        
         protected int[] CreateTriangles(
             in QuadData[] quads,
             in int[] excludedVerticesMap,
@@ -84,37 +137,6 @@ namespace MeshCreation
             }
 
             return indices;
-        }
-
-        protected VertexData CreateVertices(
-            int verticesCount,
-            int excludedVerticesCount,
-            Vector3 initVertexPoint,
-            Func<int, Vector3> getVertexPointByIndex,
-            Func<int, bool> isVertexValid = null
-        )
-        {
-            int allVerticesCount = verticesCount + excludedVerticesCount;
-
-            var vertices = new Vector3[verticesCount];
-            var excludedVerticesMap = new int[allVerticesCount];
-
-            vertices[0] = initVertexPoint;
-            for (int i = 1, vIndex = 1, invalidCount = 0; i < allVerticesCount; i++)
-            {
-                if ((isVertexValid?.Invoke(i) ?? true) == false)
-                {
-                    invalidCount++;
-                    excludedVerticesMap[i] = -1;
-                    continue;
-                }
-
-                vertices[vIndex] = initVertexPoint + getVertexPointByIndex(i);
-                excludedVerticesMap[i] = i - invalidCount;
-                vIndex++;
-            }
-
-            return new VertexData(vertices, excludedVerticesMap);
         }
 
         private void SetQuad(
