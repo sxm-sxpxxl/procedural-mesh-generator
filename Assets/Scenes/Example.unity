@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.3731193, g: 0.38073996, b: 0.35872698, a: 1}
+  m_IndirectSpecularColor: {r: 0.37311926, g: 0.38073996, b: 0.35872698, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -290,7 +290,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1032879957}
-  m_Mesh: {fileID: 1747657144}
+  m_Mesh: {fileID: 1841394328}
 --- !u!114 &1032879961
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -317,13 +317,13 @@ MonoBehaviour:
       Data: 0|VertexModifier[], Assembly-CSharp
     - Name: 
       Entry: 12
-      Data: 2
+      Data: 3
     - Name: 
       Entry: 7
       Data: 1|WaveVertexModifier, Assembly-CSharp
     - Name: type
       Entry: 3
-      Data: 1
+      Data: 0
     - Name: rippleAroundAxis
       Entry: 3
       Data: 0
@@ -341,7 +341,7 @@ MonoBehaviour:
       Data: 
     - Name: axis
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: amplitude
       Entry: 4
       Data: 0.01
@@ -353,7 +353,7 @@ MonoBehaviour:
       Data: 0
     - Name: isMotionEnabled
       Entry: 5
-      Data: false
+      Data: true
     - Name: motionSpeed
       Entry: 4
       Data: 0.54
@@ -386,10 +386,52 @@ MonoBehaviour:
       Data: 1
     - Name: amplitude
       Entry: 4
-      Data: 0.1
+      Data: 0.01
     - Name: frequency
       Entry: 3
+      Data: 4
+    - Name: phaseInDeg
+      Entry: 4
+      Data: 0
+    - Name: isMotionEnabled
+      Entry: 5
+      Data: true
+    - Name: motionSpeed
+      Entry: 4
       Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 3|WaveVertexModifier, Assembly-CSharp
+    - Name: type
+      Entry: 3
+      Data: 0
+    - Name: rippleAroundAxis
+      Entry: 3
+      Data: 0
+    - Name: customAxis
+      Entry: 7
+      Data: UnityEngine.Vector2, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: axis
+      Entry: 3
+      Data: 0
+    - Name: amplitude
+      Entry: 4
+      Data: 0.01
+    - Name: frequency
+      Entry: 3
+      Data: 4
     - Name: phaseInDeg
       Entry: 4
       Data: 0
@@ -408,20 +450,20 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
-  isVerticesShowed: 0
+  isVerticesShowed: 1
   isVertexLabelShowed: 1
   vertexColor: {r: 0, g: 0, b: 0, a: 0.5}
   vertexSize: 0.025
   meshType: 0
-  plane: 2
+  plane: 0
   isBackfaceCulling: 0
   isForwardFacing: 1
   size: {x: 1, y: 1, z: 1}
   planeSize: {x: 1, y: 1}
   offset: {x: 0, y: 0, z: 0}
-  resolution: 1
+  resolution: 2
   isModificationEnabled: 0
---- !u!43 &1747657144
+--- !u!43 &1841394328
 Mesh:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -432,11 +474,11 @@ Mesh:
   m_SubMeshes:
   - serializedVersion: 2
     firstByte: 0
-    indexCount: 12
+    indexCount: 48
     topology: 0
     baseVertex: 0
     firstVertex: 0
-    vertexCount: 4
+    vertexCount: 9
     localAABB:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0.5, y: 0.5, z: 0}
@@ -456,10 +498,10 @@ Mesh:
   m_KeepVertices: 1
   m_KeepIndices: 1
   m_IndexFormat: 0
-  m_IndexBuffer: 000002000100020003000100020000000100030002000100
+  m_IndexBuffer: 000003000100030004000100010004000200040005000200030006000400060007000400040007000500070008000500030000000100040003000100040001000200050004000200060003000400070006000400070004000500080007000500
   m_VertexData:
     serializedVersion: 3
-    m_VertexCount: 4
+    m_VertexCount: 9
     m_Channels:
     - stream: 0
       offset: 0
@@ -517,8 +559,8 @@ Mesh:
       offset: 0
       format: 0
       dimension: 0
-    m_DataSize: 80
-    _typelessdata: 000000bf00000000000000bf00000000000000000000003f00000000000000bf0000803f00000000000000bf000000000000003f000000000000803f0000003f000000000000003f0000803f0000803f
+    m_DataSize: 180
+    _typelessdata: 000000bf00000000000000bf00000000000000000000000000000000000000bf0000003f000000000000003f00000000000000bf0000803f00000000000000bf0000000000000000000000000000003f0000000000000000000000000000003f0000003f0000003f00000000000000000000803f0000003f000000bf000000000000003f000000000000803f00000000000000000000003f0000003f0000803f0000003f000000000000003f0000803f0000803f
   m_CompressedMesh:
     m_Vertices:
       m_NumItems: 0

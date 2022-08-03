@@ -7,6 +7,7 @@ using Sirenix.Utilities;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
+using MeshCreation;
 
 [RequireComponent(typeof(MeshFilter)), RequireComponent(typeof(MeshRenderer))]
 [DisallowMultipleComponent, ExecuteAlways]
@@ -134,19 +135,20 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
     private void CreateCube()
     {
         _context.Set(new CubeMeshCreator());
-        MeshFilter.sharedMesh = _context.CreateMesh(new MeshCreator.MeshData(resolution, size, offset));
+        MeshFilter.sharedMesh = _context.CreateMesh(new MeshData(resolution, size, offset));
     }
 
     private void CreatePlane()
     {
         _context.Set(new PlaneMeshCreator());
 
-        var mesh = _context.CreateMesh(new MeshCreator.MeshData(resolution, planeSize.AsFor(Plane.XY), offset, isForwardFacing, isBackfaceCulling));
+        var virtualPlane = Plane.XY;
+        var mesh = _context.CreateMesh(new MeshData(resolution, planeSize.AsFor(virtualPlane), offset, isForwardFacing, isBackfaceCulling));
         var vertices = mesh.vertices;
 
         for (int i = 0; i < mesh.vertices.Length; i++)
         {
-            vertices[i] = (vertices[i] - offset).AsFor(plane, tempIndex: 2) + offset;
+            vertices[i] = (vertices[i] - offset).AsFor(plane, virtualPlane) + offset;
         }
 
         mesh.vertices = vertices;
