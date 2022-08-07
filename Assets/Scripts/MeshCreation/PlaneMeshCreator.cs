@@ -28,12 +28,15 @@ namespace MeshCreation
                 new Vector3(1f / size.x, 1f / size.y, 1f / size.z)
             ));
             
-            Vector3[] normals = CreateNormals(vertexData.vertices, v => Vector3.forward);
+            Vector3[] normals = CreateNormals(vertexData.vertices, (i, v) => {
+                int verticesCount = _meshData.isBackfaceCulling ? vertexData.vertices.Length : vertexData.vertices.Length / 2;
+                return i >= verticesCount ? Vector3.back : Vector3.forward;
+            });
             
             int[] triangles = CreateTriangles(new QuadData[]
             {
                 new QuadData(RotationDirection.CW, i => i)
-            }, vertexData.excludedVerticesMap, _meshData.isForwardFacing, _meshData.isBackfaceCulling);
+            }, vertexData.excludedVerticesMap, quadVerticesCount, _meshData.isForwardFacing, _meshData.isBackfaceCulling);
             
             return new Mesh
             {

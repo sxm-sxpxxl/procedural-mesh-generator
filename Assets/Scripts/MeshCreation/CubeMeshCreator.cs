@@ -89,7 +89,7 @@ namespace MeshCreation
                     i =>
                         i * edgeVerticesCount - (i % edgeVerticesCount) * resolution + resolution * edgeVerticesCount
                 )
-            }, vertexData.excludedVerticesMap);
+            }, vertexData.excludedVerticesMap, maxVerticesCount - excludedVerticesCount);
 
             return new Mesh
             {

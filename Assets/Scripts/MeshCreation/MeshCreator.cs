@@ -45,12 +45,12 @@ namespace MeshCreation
 
         protected abstract Mesh CreateMesh();
 
-        protected Vector3[] CreateNormals(in Vector3[] vertices, Func<Vector3, Vector3> getNormalByVertex)
+        protected Vector3[] CreateNormals(in Vector3[] vertices, Func<int, Vector3, Vector3> getNormalByVertex)
         {
             var normals = new Vector3[vertices.Length];
             for (int i = 0; i < normals.Length; i++)
             {
-                normals[i] = getNormalByVertex(vertices[i]);
+                normals[i] = getNormalByVertex(i, vertices[i]);
             }
 
             return normals;
@@ -67,6 +67,7 @@ namespace MeshCreation
             return uv;
         }
 
+        // todo: rename isVertexValid to isVertexExcluded
         protected VertexData CreateVertices(
             int verticesCount,
             int excludedVerticesCount,
@@ -75,23 +76,31 @@ namespace MeshCreation
             Func<int, bool> isVertexValid = null
         )
         {
+            int backfaceVerticesCount = (_meshData.isBackfaceCulling ? 1 : 2) * verticesCount;
             int allVerticesCount = verticesCount + excludedVerticesCount;
+            int allBackfaceVerticesCount = backfaceVerticesCount + excludedVerticesCount;
 
-            var vertices = new Vector3[verticesCount];
-            var excludedVerticesMap = new int[allVerticesCount];
+            var vertices = new Vector3[backfaceVerticesCount];
+            var excludedVerticesMap = new int[allBackfaceVerticesCount];
 
-            vertices[0] = initVertexPoint;
-            for (int i = 1, vIndex = 1, invalidCount = 0; i < allVerticesCount; i++)
+            for (int i = 0, vIndex = 0, invalidCount = 0; i < allVerticesCount; i++)
             {
                 if ((isVertexValid?.Invoke(i) ?? true) == false)
                 {
                     invalidCount++;
-                    excludedVerticesMap[i] = -1;
+                    excludedVerticesMap[i] = excludedVerticesMap[i + verticesCount] = -1;
                     continue;
                 }
 
                 vertices[vIndex] = initVertexPoint + getVertexPointByIndex(i);
                 excludedVerticesMap[i] = i - invalidCount;
+
+                if (_meshData.isBackfaceCulling == false)
+                {
+                    vertices[vIndex + verticesCount] = vertices[vIndex];
+                    excludedVerticesMap[i + verticesCount] = (i + verticesCount) - invalidCount;
+                }
+
                 vIndex++;
             }
 
@@ -101,6 +110,7 @@ namespace MeshCreation
         protected int[] CreateTriangles(
             in QuadData[] quads,
             in int[] excludedVerticesMap,
+            int verticesCount,
             bool isForwardFacing = true,
             bool isBackfaceCulling = true
         )
@@ -131,7 +141,7 @@ namespace MeshCreation
                         startIndex: (i + 1) * quadIndicesCount,
                         excludedVerticesMap,
                         (RotationDirection) (1 - (int) actualTraversalOrder),
-                        quad.getActualVertexIndex
+                        i => quad.getActualVertexIndex(i) + verticesCount
                     );
                 }
             }

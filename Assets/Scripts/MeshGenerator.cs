@@ -94,7 +94,8 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
             return;
         }
         
-        for (int i = 0; i < vertices.Length; i++)
+        int verticesCount = isBackfaceCulling ? vertices.Length : vertices.Length / 2;
+        for (int i = 0; i < verticesCount; i++)
         {
             Vector3 currentVertexPosition = transform.TransformPoint(vertices[i]);
 
@@ -103,7 +104,8 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
 
             if (isVertexLabelShowed)
             {
-                Handles.Label(currentVertexPosition, $"V[{i}]");
+                string label = isBackfaceCulling ? $"V[{i}]" : $"V[{i}], V[{i + verticesCount}]";
+                Handles.Label(currentVertexPosition, label);
             }
             
             if (normals.Length == 0)
@@ -114,6 +116,10 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
             {
                 Gizmos.color = Color.yellow;
                 Gizmos.DrawRay(currentVertexPosition, normalsSize * normals[i]);
+                if (isBackfaceCulling == false)
+                {
+                    Gizmos.DrawRay(currentVertexPosition, normalsSize * normals[i + verticesCount]);
+                }
             }
         }
     }
