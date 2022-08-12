@@ -85,7 +85,7 @@ public sealed class WaveVertexModifier : VertexModifier
         
         for (int i = 0; i < vertices.Length; i++)
         {
-            currentPosition = frequency * i / Mathf.Sqrt(vertices.Length);
+            currentPosition = frequency * (vertices[i].x + vertices[i].y + vertices[i].z);
             vertices[i] += Direction * (amplitude * Mathf.Sin(2f * Mathf.PI * (currentPosition + motionSpeed * time) + phaseInRad));
         }
         

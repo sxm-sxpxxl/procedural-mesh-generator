@@ -115,10 +115,10 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
             else if (isVertexNormalShowed)
             {
                 Gizmos.color = Color.yellow;
-                Gizmos.DrawRay(currentVertexPosition, normalsSize * normals[i]);
+                Gizmos.DrawRay(currentVertexPosition, transform.TransformDirection(normalsSize * normals[i]));
                 if (isBackfaceCulling == false)
                 {
-                    Gizmos.DrawRay(currentVertexPosition, normalsSize * normals[i + verticesCount]);
+                    Gizmos.DrawRay(currentVertexPosition, transform.TransformDirection(normalsSize * normals[i + verticesCount]));
                 }
             }
         }
