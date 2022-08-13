@@ -84,8 +84,9 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
     private void OnDrawGizmos()
     {
         var vertices = MeshFilter.sharedMesh.vertices;
+        var verticesData = _context.VerticesData;
         var normals = MeshFilter.sharedMesh.normals;
-        
+
         if (vertices.Length == 0)
         {
             Debug.LogWarning("No vertices.");
@@ -97,22 +98,25 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
             return;
         }
         
-        int verticesCount = isBackfaceCulling ? _context.Vertices.Length : _context.Vertices.Length / 2;
+        int verticesCount = isBackfaceCulling ? verticesData.vertices.Length : verticesData.vertices.Length / 2;
+        var showedVertexGroups = new List<int>(capacity: verticesData.vertexGroups.Length);
+        
         for (int i = 0; i < verticesCount; i++)
         {
-            Vector3 currentVertexPosition = transform.TransformPoint(_context.Vertices[i].position);
+            Vector3 actualVertexPosition = transform.TransformPoint(vertices[i]);
 
             Gizmos.color = vertexColor;
-            Gizmos.DrawSphere(currentVertexPosition, vertexSize);
-
-            if (isVertexLabelShowed)
+            Gizmos.DrawSphere(actualVertexPosition, vertexSize);
+            
+            VertexGroup targetGroup = verticesData.GetGroupByVertexIndex(i);
+            if (isVertexLabelShowed && showedVertexGroups.Contains(targetGroup.selfIndex) == false)
             {
                 StringBuilder vertexLabel = new StringBuilder();
                 
                 if (isDuplicatedVerticesShowed)
                 {
                     vertexLabel.Append("V[");
-                    vertexLabel.AppendJoin(',', _context.Vertices[i].indices);
+                    vertexLabel.AppendJoin(',', targetGroup.indices);
                 
                     if (isBackfaceCulling == false)
                     {
@@ -123,10 +127,11 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
                 }
                 else
                 {
-                    vertexLabel.Append($"V[{i}]");
+                    vertexLabel.Append($"V[{targetGroup.selfIndex}]");
                 }
                 
-                Handles.Label(currentVertexPosition, vertexLabel.ToString());
+                Handles.Label(actualVertexPosition, vertexLabel.ToString());
+                showedVertexGroups.Add(targetGroup.selfIndex);
             }
             
             if (normals.Length == 0)
@@ -137,15 +142,15 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
             else if (isVertexNormalShowed)
             {
                 Gizmos.color = Color.yellow;
-                Gizmos.DrawRay(currentVertexPosition, transform.TransformDirection(normalsSize * normals[i]));
+                Gizmos.DrawRay(actualVertexPosition, transform.TransformDirection(normalsSize * normals[i]));
                 if (isBackfaceCulling == false)
                 {
-                    Gizmos.DrawRay(currentVertexPosition, transform.TransformDirection(normalsSize * normals[i + verticesCount]));
+                    Gizmos.DrawRay(actualVertexPosition, transform.TransformDirection(normalsSize * normals[i + verticesCount]));
                 }
             }
         }
     }
-
+    
     private void OnDrawGizmosSelected()
     {
         modifiers.ForEach(modifier =>

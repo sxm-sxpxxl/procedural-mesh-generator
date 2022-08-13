@@ -69,8 +69,6 @@ namespace MeshCreation
                 }
             );
 
-            _vertices = verticesData.vertexGroups;
-
             int[] triangles = CreateTriangles(new FaceData[]
             {
                 // Forward XY face
@@ -119,7 +117,7 @@ namespace MeshCreation
 
             return new Mesh
             {
-                vertices = verticesData.Vertices,
+                vertices = verticesData.vertices,
                 triangles = triangles
             };
         }

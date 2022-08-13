@@ -23,14 +23,12 @@ namespace MeshCreation
                 }
             );
 
-            _vertices = verticesData.vertexGroups;
-
-            Vector2[] uv = CreateUV(verticesData.Vertices, v => Vector3.Scale(
+            Vector2[] uv = CreateUV(verticesData.vertices, v => Vector3.Scale(
                 (v - offset) + (0.5f * size),
                 new Vector3(1f / size.x, 1f / size.y, 1f / size.z)
             ));
             
-            Vector3[] normals = CreateNormals(verticesData.Vertices, (i, v) => {
+            Vector3[] normals = CreateNormals(verticesData.vertices, (i, v) => {
                 int verticesCount = _meshData.isBackfaceCulling ? verticesData.vertexGroups.Length : verticesData.vertexGroups.Length / 2;
                 return i >= verticesCount ? Vector3.back : Vector3.forward;
             });
@@ -42,7 +40,7 @@ namespace MeshCreation
             
             return new Mesh
             {
-                vertices = verticesData.Vertices,
+                vertices = verticesData.vertices,
                 uv = uv,
                 normals = normals,
                 triangles = triangles

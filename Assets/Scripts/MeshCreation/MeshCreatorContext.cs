@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -8,7 +7,7 @@ namespace MeshCreation
     {
         private MeshCreator _meshCreator;
 
-        public MeshCreator.VertexGroup[] Vertices => _meshCreator._vertices;
+        public VerticesData VerticesData => _meshCreator.VerticesData;
 
         public MeshCreatorContext(MeshCreator target)
         {

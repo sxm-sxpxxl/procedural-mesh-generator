@@ -6,8 +6,9 @@ namespace MeshCreation
 {
     public abstract class MeshCreator
     {
+        public VerticesData VerticesData { get; private set; }
+
         protected MeshData _meshData;
-        public VertexGroup[] _vertices;
 
         protected enum RotationDirection
         {
@@ -28,38 +29,7 @@ namespace MeshCreation
                 this.vertexGroupOffset = vertexGroupOffset;
             }
         }
-
-        // todo: access modifier refactoring (#1)
-        public readonly struct VertexGroup
-        {
-            public readonly int[] indices;
-            public readonly Vector3 position;
-            
-            public VertexGroup(Vector3 position, int[] indices)
-            {
-                this.position = position;
-                this.indices = indices;
-            }
-
-            public int this[int index] => indices[Mathf.Min(index, indices.Length - 1)];
-        }
         
-        // todo: access modifier refactoring (#2)
-        public readonly struct VerticesData
-        {
-            public readonly VertexGroup[] vertexGroups;
-            public readonly int[] excludedVertexGroupsMap;
-
-            public VerticesData(VertexGroup[] vertexGroups, int[] excludedVertexGroupsMap)
-            {
-                this.vertexGroups = vertexGroups;
-                this.excludedVertexGroupsMap = excludedVertexGroupsMap;
-            }
-            
-            // todo: optimize
-            public Vector3[] Vertices => vertexGroups.SelectMany(v => v.indices, (v, i) => v.position).ToArray();
-        }
-
         public Mesh CreateMesh(in MeshData data)
         {
             _meshData = data;
@@ -105,7 +75,7 @@ namespace MeshCreation
             int allGroupsCount = vertexGroupsCount + excludedVertexGroupsCount;
             int allGroupsCountWithBackface = groupsCountWithBackface + excludedVertexGroupsCount;
             int edgeVerticesCount = _meshData.resolution + 1, currentAllGroupsSize = 0;
-            
+
             var vertexGroups = new VertexGroup[groupsCountWithBackface];
             var excludedVertexGroupsMap = new int[allGroupsCountWithBackface];
             
@@ -126,6 +96,7 @@ namespace MeshCreation
                 
                 int vertexGroupSize = getVertexGroupSizeByIndex?.Invoke(i) ?? 1;
                 vertexGroups[vIndex] = new VertexGroup(
+                    selfIndex: vIndex,
                     position: initVertexPoint + getVertexPointByIndex(i),
                     indices: Enumerable.Range(i + currentAllGroupsSize, vertexGroupSize).ToArray()
                 );
@@ -140,8 +111,9 @@ namespace MeshCreation
                 vIndex++;
                 currentAllGroupsSize += vertexGroupSize - 1;
             }
-            
-            return new VerticesData(vertexGroups, excludedVertexGroupsMap);
+
+            VerticesData = new VerticesData(vertexGroups, excludedVertexGroupsMap);
+            return VerticesData;
         }
         
         protected int[] CreateTriangles(
