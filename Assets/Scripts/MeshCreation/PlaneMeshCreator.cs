@@ -28,15 +28,15 @@ namespace MeshCreation
                 new Vector3(1f / size.x, 1f / size.y, 1f / size.z)
             ));
             
-            Vector3[] normals = CreateNormals(verticesData.vertices, (i, v) => {
-                int verticesCount = _meshData.isBackfaceCulling ? verticesData.vertexGroups.Length : verticesData.vertexGroups.Length / 2;
-                return i >= verticesCount ? Vector3.back : Vector3.forward;
+            Vector3[] normals = CreateNormals(verticesData.vertices, (i, _) => {
+                int verticesCount = _meshData.isBackfaceCulling ? verticesData.vertices.Length : verticesData.vertices.Length / 2;
+                return i >= verticesCount || _meshData.isForwardFacing ? Vector3.back : Vector3.forward;
             });
             
             int[] triangles = CreateTriangles(new FaceData[]
             {
                 new FaceData(RotationDirection.CW, i => i)
-            }, verticesData, _meshData.isForwardFacing, _meshData.isBackfaceCulling);
+            }, verticesData);
             
             return new Mesh
             {

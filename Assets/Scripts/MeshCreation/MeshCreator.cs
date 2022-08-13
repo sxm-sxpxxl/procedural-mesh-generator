@@ -33,7 +33,7 @@ namespace MeshCreation
         public Mesh CreateMesh(in MeshData data)
         {
             _meshData = data;
-            return CreateMesh();
+            return data.postProcessCallback?.Invoke(CreateMesh()) ?? CreateMesh();
         }
 
         protected abstract Mesh CreateMesh();
@@ -74,7 +74,7 @@ namespace MeshCreation
             int groupsCountWithBackface = (_meshData.isBackfaceCulling ? 1 : 2) * vertexGroupsCount;
             int allGroupsCount = vertexGroupsCount + excludedVertexGroupsCount;
             int allGroupsCountWithBackface = groupsCountWithBackface + excludedVertexGroupsCount;
-            int edgeVerticesCount = _meshData.resolution + 1, currentAllGroupsSize = 0;
+            int currentAllGroupsSize = 0;
 
             var vertexGroups = new VertexGroup[groupsCountWithBackface];
             var excludedVertexGroupsMap = new int[allGroupsCountWithBackface];
@@ -116,13 +116,9 @@ namespace MeshCreation
             return VerticesData;
         }
         
-        protected int[] CreateTriangles(
-            in FaceData[] faces,
-            VerticesData verticesData,
-            bool isForwardFacing = true,
-            bool isBackfaceCulling = true
-        )
+        protected int[] CreateTriangles(in FaceData[] faces, VerticesData verticesData)
         {
+            bool isBackfaceCulling = _meshData.isBackfaceCulling, isForwardFacing = _meshData.isForwardFacing;
             int oneFaceIndicesCount = GetFaceIndicesCountBy(_meshData.resolution);
             int allFacesIndicesCount = (isBackfaceCulling ? 1 : 2) * faces.Length * oneFaceIndicesCount;
             var indices = new int[allFacesIndicesCount];
@@ -150,7 +146,7 @@ namespace MeshCreation
                         startIndex: (i + 1) * oneFaceIndicesCount,
                         verticesData,
                         (RotationDirection) (1 - (int) actualTraversalOrder),
-                        i => face.getActualVertexGroupIndex(i) + verticesData.vertexGroups.Length,
+                        index => face.getActualVertexGroupIndex(index) + verticesData.vertexGroups.Length,
                         face.vertexGroupOffset
                     );
                 }

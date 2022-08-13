@@ -83,10 +83,10 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
 
     private void OnDrawGizmos()
     {
-        var vertices = MeshFilter.sharedMesh.vertices;
-        var verticesData = _context.VerticesData;
-        var normals = MeshFilter.sharedMesh.normals;
-
+        var sharedMesh = MeshFilter.sharedMesh;
+        var vertices = sharedMesh.vertices;
+        var normals = sharedMesh.normals;
+        
         if (vertices.Length == 0)
         {
             Debug.LogWarning("No vertices.");
@@ -98,6 +98,7 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
             return;
         }
         
+        var verticesData = _context.VerticesData;
         int verticesCount = isBackfaceCulling ? verticesData.vertices.Length : verticesData.vertices.Length / 2;
         var showedVertexGroups = new List<int>(capacity: verticesData.vertexGroups.Length);
         
@@ -201,22 +202,30 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
     private void CreatePlane()
     {
         _context.Set(new PlaneMeshCreator());
-
+        
         var virtualPlane = Plane.XY;
-        var mesh = _context.CreateMesh(new MeshData(resolution, planeSize.AsFor(virtualPlane), offset, isForwardFacing, isBackfaceCulling));
-        
-        var vertices = mesh.vertices;
-        var normals = mesh.normals;
-        
-        for (int i = 0; i < mesh.vertices.Length; i++)
-        {
-            vertices[i] = (vertices[i] - offset).AsFor(plane, virtualPlane) + offset;
-            normals[i] = normals[i].AsFor(plane, virtualPlane);
-        }
-        
-        mesh.vertices = vertices;
-        mesh.normals = normals;
-        
-        MeshFilter.sharedMesh = mesh;
+        MeshFilter.sharedMesh = _context.CreateMesh(new MeshData(
+            resolution,
+            planeSize.AsFor(virtualPlane),
+            offset,
+            isForwardFacing,
+            isBackfaceCulling,
+            mesh =>
+            {
+                var vertices = mesh.vertices;
+                var normals = mesh.normals;
+                
+                for (int i = 0; i < vertices.Length; i++)
+                {
+                    vertices[i] = (vertices[i] - offset).AsFor(plane, virtualPlane) + offset;
+                    normals[i] = normals[i].AsFor(plane, virtualPlane);
+                }
+
+                mesh.vertices = vertices;
+                mesh.normals = normals;
+
+                return mesh;
+            }
+        ));
     }
 }

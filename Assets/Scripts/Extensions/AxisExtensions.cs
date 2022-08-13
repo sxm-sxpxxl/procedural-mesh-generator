@@ -19,7 +19,7 @@ public static class AxisExtensions
         {
             Plane.XY => new Vector3(vec.x, vec.y, excludedCoordinate),
             Plane.YZ => new Vector3(excludedCoordinate, vec.x, vec.y),
-            Plane.XZ => new Vector3(vec.x, excludedCoordinate, vec.y),
+            Plane.XZ => new Vector3(vec.x, -excludedCoordinate, vec.y),
             _ => Vector3.zero
         };
     }

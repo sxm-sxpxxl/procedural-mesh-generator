@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace MeshCreation
 {
@@ -9,13 +10,15 @@ namespace MeshCreation
         public readonly Vector3 offset;
         public readonly bool isForwardFacing;
         public readonly bool isBackfaceCulling;
+        public readonly Func<Mesh, Mesh> postProcessCallback;
 
         public MeshData(
             int resolution,
             Vector3 size,
             Vector3 offset = default,
             bool isForwardFacing = true,
-            bool isBackfaceCulling = true
+            bool isBackfaceCulling = true,
+            Func<Mesh, Mesh> postProcessCallback = null
         )
         {
             this.resolution = resolution;
@@ -23,6 +26,7 @@ namespace MeshCreation
             this.offset = offset;
             this.isForwardFacing = isForwardFacing;
             this.isBackfaceCulling = isBackfaceCulling;
+            this.postProcessCallback = postProcessCallback;
         }
     }
 }
