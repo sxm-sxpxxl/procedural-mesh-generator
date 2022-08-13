@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace MeshCreation
@@ -11,12 +12,12 @@ namespace MeshCreation
 
             int edgeVerticesCount = resolution + 1;
             int quadVerticesCount = edgeVerticesCount * edgeVerticesCount;
-            int maxVerticesCount = (int) Mathf.Pow(edgeVerticesCount, 3);
             int excludedVerticesCount = (int) Mathf.Pow(resolution - 1, 3);
+            int verticesCount = (int) Mathf.Pow(edgeVerticesCount, 3) - excludedVerticesCount;
 
-            VertexData vertexData = CreateVertices(
-                verticesCount: maxVerticesCount - excludedVerticesCount,
-                excludedVerticesCount: excludedVerticesCount,
+            VerticesData verticesData = CreateVertices(
+                vertexGroupsCount: verticesCount,
+                excludedVertexGroupsCount: excludedVerticesCount,
                 initVertexPoint: (-0.5f * size) + offset,
                 getVertexPointByIndex: i => new Vector3
                 {
@@ -24,14 +25,14 @@ namespace MeshCreation
                     y = size.y / resolution * (i % edgeVerticesCount),
                     z = size.z / resolution * (i / quadVerticesCount)
                 },
-                isVertexValid: i =>
+                isVertexGroupExcluded: i =>
                 {
                     int minValidIndex = quadVerticesCount;
-                    int maxValidIndex = maxVerticesCount - quadVerticesCount;
+                    int maxValidIndex = verticesCount - quadVerticesCount + excludedVerticesCount;
 
                     if (i < minValidIndex || i > maxValidIndex)
                     {
-                        return true;
+                        return false;
                     }
 
                     int firstInvalidIndex = quadVerticesCount + edgeVerticesCount + 1;
@@ -48,52 +49,77 @@ namespace MeshCreation
                     {
                         if (currentMultipliers[j] < 0 || currentMultipliers[j] >= resolution - 1)
                         {
-                            return true;
+                            return false;
                         }
                     }
 
-                    return false;
+                    return true;
+                },
+                getVertexGroupSizeByIndex: i =>
+                {
+                    int xOffset = (int) Mathf.Repeat(i / edgeVerticesCount, edgeVerticesCount);
+                    int yOffset = i % edgeVerticesCount;
+                    int zOffset = i / quadVerticesCount;
+
+                    bool isXMinOrMax = xOffset == 0 || xOffset == resolution;
+                    bool isYMinOrMax = yOffset == 0 || yOffset == resolution;
+                    bool isZMinOrMax = zOffset == 0 || zOffset == resolution;
+
+                    return Convert.ToInt32(isXMinOrMax) + Convert.ToInt32(isYMinOrMax) + Convert.ToInt32(isZMinOrMax);
                 }
             );
 
-            int[] triangles = CreateTriangles(new QuadData[]
+            _vertices = verticesData.vertexGroups;
+
+            int[] triangles = CreateTriangles(new FaceData[]
             {
-                new QuadData
+                // Forward XY face
+                new FaceData
                 (
                     RotationDirection.CCW,
-                    i => i
+                    i => i,
+                    vertexGroupOffset: (int) Plane.XY
                 ),
-                new QuadData
+                // Backward XY face
+                new FaceData
                 (
                     RotationDirection.CW,
-                    i => i + resolution * quadVerticesCount
+                    i => i + resolution * quadVerticesCount,
+                    vertexGroupOffset: (int) Plane.XY
                 ),
-                new QuadData
+                // Forward XZ face
+                new FaceData
                 (
                     RotationDirection.CCW,
-                    i => i * edgeVerticesCount
+                    i => i * edgeVerticesCount,
+                    vertexGroupOffset: (int) Plane.XZ
                 ),
-                new QuadData
+                // Backward XZ face
+                new FaceData
                 (
                     RotationDirection.CW,
-                    i => i * edgeVerticesCount + resolution
+                    i => i * edgeVerticesCount + resolution,
+                    vertexGroupOffset: (int) Plane.XZ
                 ),
-                new QuadData
+                // Forward YZ face
+                new FaceData
                 (
                     RotationDirection.CW,
-                    i => i * edgeVerticesCount - (i % edgeVerticesCount) * resolution
+                    i => i * edgeVerticesCount - (i % edgeVerticesCount) * resolution,
+                    vertexGroupOffset: (int) Plane.YZ
                 ),
-                new QuadData
+                // Backward YZ face
+                new FaceData
                 (
                     RotationDirection.CCW,
-                    i =>
-                        i * edgeVerticesCount - (i % edgeVerticesCount) * resolution + resolution * edgeVerticesCount
+                    i => (i + resolution) * edgeVerticesCount - (i % edgeVerticesCount) * resolution,
+                    vertexGroupOffset: (int) Plane.YZ
                 )
-            }, vertexData.excludedVerticesMap, maxVerticesCount - excludedVerticesCount);
+            }, verticesData);
 
             return new Mesh
             {
-                vertices = vertexData.vertices,
+                vertices = verticesData.Vertices,
                 triangles = triangles
             };
         }

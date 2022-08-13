@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 
 namespace MeshCreation
@@ -6,6 +7,7 @@ namespace MeshCreation
     public abstract class MeshCreator
     {
         protected MeshData _meshData;
+        public VertexGroup[] _vertices;
 
         protected enum RotationDirection
         {
@@ -13,28 +15,49 @@ namespace MeshCreation
             CCW = 1 // Counterclockwise
         }
 
-        protected readonly struct QuadData
+        protected readonly struct FaceData
         {
             public readonly RotationDirection traversalOrder;
-            public readonly Func<int, int> getActualVertexIndex;
+            public readonly Func<int, int> getActualVertexGroupIndex;
+            public readonly int vertexGroupOffset;
 
-            public QuadData(RotationDirection traversalOrder, Func<int, int> getActualVertexIndex)
+            public FaceData(RotationDirection traversalOrder, Func<int, int> getActualVertexGroupIndex, int vertexGroupOffset = 0)
             {
                 this.traversalOrder = traversalOrder;
-                this.getActualVertexIndex = getActualVertexIndex;
+                this.getActualVertexGroupIndex = getActualVertexGroupIndex;
+                this.vertexGroupOffset = vertexGroupOffset;
             }
         }
 
-        protected readonly struct VertexData
+        // todo: access modifier refactoring (#1)
+        public readonly struct VertexGroup
         {
-            public readonly Vector3[] vertices;
-            public readonly int[] excludedVerticesMap;
-
-            public VertexData(Vector3[] vertices, int[] excludedVerticesMap)
+            public readonly int[] indices;
+            public readonly Vector3 position;
+            
+            public VertexGroup(Vector3 position, int[] indices)
             {
-                this.vertices = vertices;
-                this.excludedVerticesMap = excludedVerticesMap;
+                this.position = position;
+                this.indices = indices;
             }
+
+            public int this[int index] => indices[Mathf.Min(index, indices.Length - 1)];
+        }
+        
+        // todo: access modifier refactoring (#2)
+        public readonly struct VerticesData
+        {
+            public readonly VertexGroup[] vertexGroups;
+            public readonly int[] excludedVertexGroupsMap;
+
+            public VerticesData(VertexGroup[] vertexGroups, int[] excludedVertexGroupsMap)
+            {
+                this.vertexGroups = vertexGroups;
+                this.excludedVertexGroupsMap = excludedVertexGroupsMap;
+            }
+            
+            // todo: optimize
+            public Vector3[] Vertices => vertexGroups.SelectMany(v => v.indices, (v, i) => v.position).ToArray();
         }
 
         public Mesh CreateMesh(in MeshData data)
@@ -67,81 +90,96 @@ namespace MeshCreation
             return uv;
         }
 
-        // todo: rename isVertexValid to isVertexExcluded
-        protected VertexData CreateVertices(
-            int verticesCount,
-            int excludedVerticesCount,
+        protected VerticesData CreateVertices(
+            int vertexGroupsCount,
+            int excludedVertexGroupsCount,
             Vector3 initVertexPoint,
             Func<int, Vector3> getVertexPointByIndex,
-            Func<int, bool> isVertexValid = null
+            Func<int, bool> isVertexGroupExcluded = null,
+            Func<int, int> getVertexGroupSizeByIndex = null
         )
         {
-            int backfaceVerticesCount = (_meshData.isBackfaceCulling ? 1 : 2) * verticesCount;
-            int allVerticesCount = verticesCount + excludedVerticesCount;
-            int allBackfaceVerticesCount = backfaceVerticesCount + excludedVerticesCount;
-
-            var vertices = new Vector3[backfaceVerticesCount];
-            var excludedVerticesMap = new int[allBackfaceVerticesCount];
-
-            for (int i = 0, vIndex = 0, invalidCount = 0; i < allVerticesCount; i++)
+            const int excludedGroup = -1;
+            
+            int groupsCountWithBackface = (_meshData.isBackfaceCulling ? 1 : 2) * vertexGroupsCount;
+            int allGroupsCount = vertexGroupsCount + excludedVertexGroupsCount;
+            int allGroupsCountWithBackface = groupsCountWithBackface + excludedVertexGroupsCount;
+            int edgeVerticesCount = _meshData.resolution + 1, currentAllGroupsSize = 0;
+            
+            var vertexGroups = new VertexGroup[groupsCountWithBackface];
+            var excludedVertexGroupsMap = new int[allGroupsCountWithBackface];
+            
+            for (int i = 0, vIndex = 0, currentExcludedGroupsCount = 0; i < allGroupsCount; i++)
             {
-                if ((isVertexValid?.Invoke(i) ?? true) == false)
+                if (isVertexGroupExcluded?.Invoke(i) ?? false)
                 {
-                    invalidCount++;
-                    excludedVerticesMap[i] = excludedVerticesMap[i + verticesCount] = -1;
+                    currentExcludedGroupsCount++;
+                    excludedVertexGroupsMap[i] = excludedGroup;
+                    
+                    if (_meshData.isBackfaceCulling == false)
+                    {
+                        excludedVertexGroupsMap[i + vertexGroupsCount] = excludedGroup;
+                    }
+                    
                     continue;
                 }
-
-                vertices[vIndex] = initVertexPoint + getVertexPointByIndex(i);
-                excludedVerticesMap[i] = i - invalidCount;
-
+                
+                int vertexGroupSize = getVertexGroupSizeByIndex?.Invoke(i) ?? 1;
+                vertexGroups[vIndex] = new VertexGroup(
+                    position: initVertexPoint + getVertexPointByIndex(i),
+                    indices: Enumerable.Range(i + currentAllGroupsSize, vertexGroupSize).ToArray()
+                );
+                excludedVertexGroupsMap[i] = i - currentExcludedGroupsCount;
+                
                 if (_meshData.isBackfaceCulling == false)
                 {
-                    vertices[vIndex + verticesCount] = vertices[vIndex];
-                    excludedVerticesMap[i + verticesCount] = (i + verticesCount) - invalidCount;
+                    vertexGroups[vIndex + vertexGroupsCount] = vertexGroups[vIndex];
+                    excludedVertexGroupsMap[i + vertexGroupsCount] = (i + vertexGroupsCount) - currentExcludedGroupsCount;
                 }
-
+                
                 vIndex++;
+                currentAllGroupsSize += vertexGroupSize - 1;
             }
-
-            return new VertexData(vertices, excludedVerticesMap);
+            
+            return new VerticesData(vertexGroups, excludedVertexGroupsMap);
         }
         
         protected int[] CreateTriangles(
-            in QuadData[] quads,
-            in int[] excludedVerticesMap,
-            int verticesCount,
+            in FaceData[] faces,
+            VerticesData verticesData,
             bool isForwardFacing = true,
             bool isBackfaceCulling = true
         )
         {
-            int quadIndicesCount = GetQuadIndicesCountBy(_meshData.resolution);
-            int allIndicesCount = (isBackfaceCulling ? 1 : 2) * quads.Length * quadIndicesCount;
-
-            var indices = new int[allIndicesCount];
-            for (int i = 0; i < quads.Length; i++)
+            int oneFaceIndicesCount = GetFaceIndicesCountBy(_meshData.resolution);
+            int allFacesIndicesCount = (isBackfaceCulling ? 1 : 2) * faces.Length * oneFaceIndicesCount;
+            var indices = new int[allFacesIndicesCount];
+            
+            for (int i = 0; i < faces.Length; i++)
             {
-                QuadData quad = quads[i];
+                FaceData face = faces[i];
                 RotationDirection actualTraversalOrder = isForwardFacing
-                    ? quad.traversalOrder
-                    : (RotationDirection) (1 - (int) quad.traversalOrder);
+                    ? face.traversalOrder
+                    : (RotationDirection) (1 - (int) face.traversalOrder);
 
-                SetQuad(
+                SetFace(
                     indices,
-                    startIndex: i * quadIndicesCount,
-                    excludedVerticesMap,
+                    startIndex: i * oneFaceIndicesCount,
+                    verticesData,
                     actualTraversalOrder,
-                    quad.getActualVertexIndex
+                    face.getActualVertexGroupIndex,
+                    face.vertexGroupOffset
                 );
 
                 if (isBackfaceCulling == false)
                 {
-                    SetQuad(
+                    SetFace(
                         indices,
-                        startIndex: (i + 1) * quadIndicesCount,
-                        excludedVerticesMap,
+                        startIndex: (i + 1) * oneFaceIndicesCount,
+                        verticesData,
                         (RotationDirection) (1 - (int) actualTraversalOrder),
-                        i => quad.getActualVertexIndex(i) + verticesCount
+                        i => face.getActualVertexGroupIndex(i) + verticesData.vertexGroups.Length,
+                        face.vertexGroupOffset
                     );
                 }
             }
@@ -149,44 +187,49 @@ namespace MeshCreation
             return indices;
         }
 
-        private void SetQuad(
+        private void SetFace(
             int[] indices,
             int startIndex,
-            in int[] excludedVerticesMap,
+            in VerticesData verticesData,
             RotationDirection traversalOrder,
-            Func<int, int> getActualVertexIndex
+            Func<int, int> getActualVertexGroupIndex,
+            int vertexGroupOffset
         )
         {
             int resolution = _meshData.resolution;
-            int quadIndicesCount = GetQuadIndicesCountBy(resolution);
-
-            Func<int, int> convertIndex = i => (i % 2 == 0) ? (i / 2) : (i / 2 + (resolution + 1));
-
-            int triangleVertexIndex = 0, repeatedIndex = 0;
-            int v1Index, v2Index, v3Index, v4Index, v5Index, v6Index;
-
-            for (int i = 0; i < quadIndicesCount; i += 6)
+            int faceIndicesCount = GetFaceIndicesCountBy(resolution);
+            int[] excludedVertexGroupsMap = verticesData.excludedVertexGroupsMap;
+            VertexGroup[] vertexGroups = verticesData.vertexGroups;
+            
+            Func<int, int> fromTriangleSpace = i => (i % 2 == 0) ? (i / 2) : (i / 2 + (resolution + 1));
+            Vector3Int leftIndices = Vector3Int.zero, rightIndices = Vector3Int.zero;
+            int initIndex = 0, repeatedIndex = 0, actualVertexGroupIndex, adjustedForExcludedGroupsIndex, excludedGroupsCount;
+            
+            for (int i = 0; i < faceIndicesCount; i += 6)
             {
-                v1Index = convertIndex(((int) traversalOrder) + triangleVertexIndex);
-                v2Index = convertIndex((1 - (int) traversalOrder) + triangleVertexIndex);
-                v3Index = convertIndex(2 + triangleVertexIndex);
-                v4Index = convertIndex((1 + 2 * (int) traversalOrder) + triangleVertexIndex);
-                v5Index = convertIndex((3 - 2 * (int) traversalOrder) + triangleVertexIndex);
-                v6Index = v3Index;
-
-                indices[startIndex + i + 0] = excludedVerticesMap[getActualVertexIndex(v1Index)];
-                indices[startIndex + i + 1] = excludedVerticesMap[getActualVertexIndex(v2Index)];
-                indices[startIndex + i + 2] = excludedVerticesMap[getActualVertexIndex(v3Index)];
-
-                indices[startIndex + i + 3] = excludedVerticesMap[getActualVertexIndex(v4Index)];
-                indices[startIndex + i + 4] = excludedVerticesMap[getActualVertexIndex(v5Index)];
-                indices[startIndex + i + 5] = excludedVerticesMap[getActualVertexIndex(v6Index)];
-
-                repeatedIndex = (int) Mathf.Repeat(triangleVertexIndex, 2 * (resolution + 1));
-                triangleVertexIndex += 2 * (1 + (repeatedIndex / 2 % resolution) / Mathf.Max(resolution - 1, 1));
+                leftIndices [0] = fromTriangleSpace(((int) traversalOrder) + initIndex);
+                leftIndices [1] = fromTriangleSpace((1 - (int) traversalOrder) + initIndex);
+                leftIndices [2] = fromTriangleSpace(2 + initIndex);
+                rightIndices[0] = fromTriangleSpace((1 + 2 * (int) traversalOrder) + initIndex);
+                rightIndices[1] = fromTriangleSpace((3 - 2 * (int) traversalOrder) + initIndex);
+                rightIndices[2] = leftIndices[2];
+                
+                for (int j = 0; j < 6; j++)
+                {
+                    Vector3Int targetIndices = j < 3 ? leftIndices : rightIndices;
+                    
+                    actualVertexGroupIndex = getActualVertexGroupIndex(targetIndices[j % 3]);
+                    adjustedForExcludedGroupsIndex = excludedVertexGroupsMap[actualVertexGroupIndex];
+                    excludedGroupsCount = actualVertexGroupIndex - adjustedForExcludedGroupsIndex;
+                    
+                    indices[startIndex + i + j] = vertexGroups[adjustedForExcludedGroupsIndex][vertexGroupOffset] - excludedGroupsCount;
+                }
+                
+                repeatedIndex = (int) Mathf.Repeat(initIndex, 2 * (resolution + 1));
+                initIndex += 2 * (1 + (repeatedIndex / 2 % resolution) / Mathf.Max(resolution - 1, 1));
             }
         }
 
-        private static int GetQuadIndicesCountBy(int resolution) => 6 * resolution * resolution;
+        private static int GetFaceIndicesCountBy(int resolution) => 6 * resolution * resolution;
     }
 }

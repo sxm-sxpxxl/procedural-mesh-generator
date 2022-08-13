@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
@@ -23,6 +24,8 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
     [Space]
     [SerializeField, FoldoutGroup("Debug options"), Indent, ShowIf(nameof(areVerticesShowed)), LabelText("Show labels")]
     private bool isVertexLabelShowed = true;
+    [SerializeField, FoldoutGroup("Debug options"), Indent(2), ShowIf(nameof(areVerticesShowed)), LabelText("Show duplicated vertices")]
+    private bool isDuplicatedVerticesShowed = true;
     [SerializeField, FoldoutGroup("Debug options"), Indent, ShowIf(nameof(areVerticesShowed)), LabelText("Show normals")]
     private bool isVertexNormalShowed = true;
     [SerializeField, FoldoutGroup("Debug options"), Indent, ShowIf(nameof(areVerticesShowed)), LabelText("Normals size")]
@@ -94,23 +97,42 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
             return;
         }
         
-        int verticesCount = isBackfaceCulling ? vertices.Length : vertices.Length / 2;
+        int verticesCount = isBackfaceCulling ? _context.Vertices.Length : _context.Vertices.Length / 2;
         for (int i = 0; i < verticesCount; i++)
         {
-            Vector3 currentVertexPosition = transform.TransformPoint(vertices[i]);
+            Vector3 currentVertexPosition = transform.TransformPoint(_context.Vertices[i].position);
 
             Gizmos.color = vertexColor;
             Gizmos.DrawSphere(currentVertexPosition, vertexSize);
 
             if (isVertexLabelShowed)
             {
-                string label = isBackfaceCulling ? $"V[{i}]" : $"V[{i}], V[{i + verticesCount}]";
-                Handles.Label(currentVertexPosition, label);
+                StringBuilder vertexLabel = new StringBuilder();
+                
+                if (isDuplicatedVerticesShowed)
+                {
+                    vertexLabel.Append("V[");
+                    vertexLabel.AppendJoin(',', _context.Vertices[i].indices);
+                
+                    if (isBackfaceCulling == false)
+                    {
+                        vertexLabel.Append($",{i + verticesCount}");
+                    }
+                
+                    vertexLabel.Append(']');
+                }
+                else
+                {
+                    vertexLabel.Append($"V[{i}]");
+                }
+                
+                Handles.Label(currentVertexPosition, vertexLabel.ToString());
             }
             
             if (normals.Length == 0)
             {
-                Debug.LogWarning("No vertex normals.");
+                // todo: refactoring (too many editor logs)
+                // Debug.LogWarning("No vertex normals.");
             }
             else if (isVertexNormalShowed)
             {
@@ -168,6 +190,7 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
     {
         _context.Set(new CubeMeshCreator());
         MeshFilter.sharedMesh = _context.CreateMesh(new MeshData(resolution, size, offset));
+        isBackfaceCulling = true;
     }
 
     private void CreatePlane()
@@ -178,7 +201,6 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
         var mesh = _context.CreateMesh(new MeshData(resolution, planeSize.AsFor(virtualPlane), offset, isForwardFacing, isBackfaceCulling));
         
         var vertices = mesh.vertices;
-        var uv = mesh.uv;
         var normals = mesh.normals;
         
         for (int i = 0; i < mesh.vertices.Length; i++)
