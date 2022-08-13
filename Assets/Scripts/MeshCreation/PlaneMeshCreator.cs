@@ -29,8 +29,9 @@ namespace MeshCreation
             ));
             
             Vector3[] normals = CreateNormals(verticesData.vertices, (i, _) => {
-                int verticesCount = _meshData.isBackfaceCulling ? verticesData.vertices.Length : verticesData.vertices.Length / 2;
-                return i >= verticesCount || _meshData.isForwardFacing ? Vector3.back : Vector3.forward;
+                int vertexGroupsCount = _meshData.isBackfaceCulling ? verticesData.vertexGroups.Length : verticesData.vertexGroups.Length / 2;
+                Vector3 backfaceAdjustedNormal = i >= vertexGroupsCount ? Vector3.forward : Vector3.back;
+                return _meshData.isForwardFacing ? backfaceAdjustedNormal : -backfaceAdjustedNormal;
             });
             
             int[] triangles = CreateTriangles(new FaceData[]

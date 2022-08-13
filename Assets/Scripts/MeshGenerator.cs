@@ -117,8 +117,16 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
                 if (isDuplicatedVerticesShowed)
                 {
                     vertexLabel.Append("V[");
-                    vertexLabel.AppendJoin(',', targetGroup.indices);
-                
+                    
+                    if (targetGroup.hasSingleVertex)
+                    {
+                        vertexLabel.Append(targetGroup.singleIndex);
+                    }
+                    else
+                    {
+                        vertexLabel.AppendJoin(',', targetGroup.indices);
+                    }
+
                     if (isBackfaceCulling == false)
                     {
                         vertexLabel.Append($",{i + verticesCount}");

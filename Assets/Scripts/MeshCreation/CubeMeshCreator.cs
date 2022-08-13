@@ -40,9 +40,9 @@ namespace MeshCreation
 
                     var currentMultipliers = new Vector3Int
                     {
-                        x = (int) diff / quadVerticesCount,
-                        y = (int) (diff % quadVerticesCount) / edgeVerticesCount,
-                        z = (int) (diff % quadVerticesCount) % edgeVerticesCount
+                        x = diff / quadVerticesCount,
+                        y = (diff % quadVerticesCount) / edgeVerticesCount,
+                        z = (diff % quadVerticesCount) % edgeVerticesCount
                     };
 
                     for (int j = 0; j < 3; j++)

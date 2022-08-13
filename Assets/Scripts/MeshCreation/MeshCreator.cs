@@ -95,16 +95,24 @@ namespace MeshCreation
                 }
                 
                 int vertexGroupSize = getVertexGroupSizeByIndex?.Invoke(i) ?? 1;
+                Vector3 vertexPosition = initVertexPoint + getVertexPointByIndex(i);
+                
                 vertexGroups[vIndex] = new VertexGroup(
                     selfIndex: vIndex,
-                    position: initVertexPoint + getVertexPointByIndex(i),
-                    indices: Enumerable.Range(i + currentAllGroupsSize, vertexGroupSize).ToArray()
+                    position: vertexPosition,
+                    startIndex: i + currentAllGroupsSize,
+                    length: vertexGroupSize
                 );
                 excludedVertexGroupsMap[i] = i - currentExcludedGroupsCount;
                 
                 if (_meshData.isBackfaceCulling == false)
                 {
-                    vertexGroups[vIndex + vertexGroupsCount] = vertexGroups[vIndex];
+                    vertexGroups[vIndex + vertexGroupsCount] = new VertexGroup(
+                        selfIndex: vIndex + vertexGroupsCount,
+                        position: vertexPosition,
+                        startIndex: i + vertexGroupsCount + currentAllGroupsSize,
+                        length: vertexGroupSize
+                    );
                     excludedVertexGroupsMap[i + vertexGroupsCount] = (i + vertexGroupsCount) - currentExcludedGroupsCount;
                 }
                 
@@ -112,7 +120,7 @@ namespace MeshCreation
                 currentAllGroupsSize += vertexGroupSize - 1;
             }
 
-            VerticesData = new VerticesData(vertexGroups, excludedVertexGroupsMap);
+            VerticesData = new VerticesData(allGroupsCountWithBackface + currentAllGroupsSize, vertexGroups, excludedVertexGroupsMap);
             return VerticesData;
         }
         
@@ -146,7 +154,7 @@ namespace MeshCreation
                         startIndex: (i + 1) * oneFaceIndicesCount,
                         verticesData,
                         (RotationDirection) (1 - (int) actualTraversalOrder),
-                        index => face.getActualVertexGroupIndex(index) + verticesData.vertexGroups.Length,
+                        index => face.getActualVertexGroupIndex(index) + verticesData.vertexGroups.Length / 2,
                         face.vertexGroupOffset
                     );
                 }
