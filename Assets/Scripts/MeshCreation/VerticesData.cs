@@ -7,6 +7,7 @@ namespace MeshCreation
     public readonly struct VerticesData
     {
         public readonly Vector3[] vertices;
+        public readonly Vector3[] normals;
         public readonly int[] vertexGroupIndices;
         public readonly VertexGroup[] vertexGroups;
         public readonly int[] excludedVertexGroupsMap;
@@ -16,6 +17,7 @@ namespace MeshCreation
             this.vertexGroups = vertexGroups;
             this.excludedVertexGroupsMap = excludedVertexGroupsMap;
             vertices = GetParametersByVertexGroups(verticesCount, group => group.position);
+            normals = new Vector3[verticesCount];
             vertexGroupIndices = GetParametersByVertexGroups(verticesCount, group => group.selfIndex);
         }
         

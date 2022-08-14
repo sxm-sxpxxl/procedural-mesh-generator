@@ -76,6 +76,7 @@ namespace MeshCreation
                 (
                     RotationDirection.CCW,
                     i => i,
+                    () => Vector3.back,
                     vertexGroupOffset: (int) Plane.XY
                 ),
                 // Backward XY face
@@ -83,6 +84,7 @@ namespace MeshCreation
                 (
                     RotationDirection.CW,
                     i => i + resolution * quadVerticesCount,
+                    () => Vector3.forward,
                     vertexGroupOffset: (int) Plane.XY
                 ),
                 // Forward XZ face
@@ -90,6 +92,7 @@ namespace MeshCreation
                 (
                     RotationDirection.CCW,
                     i => i * edgeVerticesCount,
+                    () => Vector3.down,
                     vertexGroupOffset: (int) Plane.XZ
                 ),
                 // Backward XZ face
@@ -97,6 +100,7 @@ namespace MeshCreation
                 (
                     RotationDirection.CW,
                     i => i * edgeVerticesCount + resolution,
+                    () => Vector3.up,
                     vertexGroupOffset: (int) Plane.XZ
                 ),
                 // Forward YZ face
@@ -104,6 +108,7 @@ namespace MeshCreation
                 (
                     RotationDirection.CW,
                     i => i * edgeVerticesCount - (i % edgeVerticesCount) * resolution,
+                    () => Vector3.left,
                     vertexGroupOffset: (int) Plane.YZ
                 ),
                 // Backward YZ face
@@ -111,13 +116,15 @@ namespace MeshCreation
                 (
                     RotationDirection.CCW,
                     i => (i + resolution) * edgeVerticesCount - (i % edgeVerticesCount) * resolution,
+                    () => Vector3.right,
                     vertexGroupOffset: (int) Plane.YZ
                 )
-            }, verticesData);
+            }, verticesData, baseEdgeVertexGroupOffset: (int) Plane.XY);
 
             return new Mesh
             {
                 vertices = verticesData.vertices,
+                normals = verticesData.normals,
                 triangles = triangles
             };
         }
