@@ -115,7 +115,11 @@ namespace MeshCreation
                 currentAllGroupsSize += vertexGroupSize - 1;
             }
 
-            VerticesData = new VerticesData(allGroupsCountWithBackface + currentAllGroupsSize, vertexGroups, excludedVertexGroupsMap);
+            VerticesData = new VerticesData(
+                verticesCount: allGroupsCountWithBackface + currentAllGroupsSize - excludedVertexGroupsCount,
+                vertexGroups,
+                excludedVertexGroupsMap
+            );
             return VerticesData;
         }
         
