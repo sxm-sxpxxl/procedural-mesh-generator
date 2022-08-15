@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using UnityEngine;
 
 namespace MeshCreation
@@ -8,20 +7,26 @@ namespace MeshCreation
     {
         public readonly Vector3[] vertices;
         public readonly Vector3[] normals;
-        public readonly int[] vertexGroupIndices;
+        public readonly Vector2[] uv;
+        
         public readonly VertexGroup[] vertexGroups;
         public readonly int[] excludedVertexGroupsMap;
+        
+        private readonly int[] _vertexGroupIndices;
 
         public VerticesData(int verticesCount, VertexGroup[] vertexGroups, int[] excludedVertexGroupsMap) : this()
         {
             this.vertexGroups = vertexGroups;
             this.excludedVertexGroupsMap = excludedVertexGroupsMap;
+            
             vertices = GetParametersByVertexGroups(verticesCount, group => group.position);
             normals = new Vector3[verticesCount];
-            vertexGroupIndices = GetParametersByVertexGroups(verticesCount, group => group.selfIndex);
+            uv = new Vector2[verticesCount];
+
+            _vertexGroupIndices = GetParametersByVertexGroups(verticesCount, group => group.selfIndex);
         }
         
-        public VertexGroup GetGroupByVertexIndex(int index) => vertexGroups[vertexGroupIndices[index]];
+        public VertexGroup GetGroupByVertexIndex(int index) => vertexGroups[_vertexGroupIndices[index]];
 
         private T[] GetParametersByVertexGroups<T>(int verticesCount, Func<VertexGroup, T> getParameter) where T : struct
         {

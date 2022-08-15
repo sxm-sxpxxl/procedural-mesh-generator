@@ -20,18 +20,21 @@ namespace MeshCreation
             public readonly RotationDirection traversalOrder;
             public readonly Func<int, int> getActualVertexGroupIndex;
             public readonly Func<Vector3> getFaceNormal;
+            public readonly Func<int, Vector2> getUV;
             public readonly int vertexGroupOffset;
 
             public FaceData(
                 RotationDirection traversalOrder,
                 Func<int, int> getActualVertexGroupIndex,
                 Func<Vector3> getFaceNormal,
+                Func<int, Vector2> getUV,
                 int vertexGroupOffset = 0
             )
             {
                 this.traversalOrder = traversalOrder;
                 this.getActualVertexGroupIndex = getActualVertexGroupIndex;
                 this.getFaceNormal = getFaceNormal;
+                this.getUV = getUV;
                 this.vertexGroupOffset = vertexGroupOffset;
             }
         }
@@ -43,18 +46,7 @@ namespace MeshCreation
         }
 
         protected abstract Mesh CreateMesh();
-
-        protected Vector2[] CreateUV(in Vector3[] vertices, Func<Vector3, Vector2> getUVByVertex)
-        {
-            var uv = new Vector2[vertices.Length];
-            for (int i = 0; i < uv.Length; i++)
-            {
-                uv[i] = getUVByVertex(vertices[i]);
-            }
-
-            return uv;
-        }
-
+        
         protected VerticesData CreateVertices(
             int vertexGroupsCount,
             int excludedVertexGroupsCount,
@@ -120,6 +112,7 @@ namespace MeshCreation
                 vertexGroups,
                 excludedVertexGroupsMap
             );
+            
             return VerticesData;
         }
         
@@ -144,6 +137,7 @@ namespace MeshCreation
                     actualTraversalOrder,
                     face.getActualVertexGroupIndex,
                     face.getFaceNormal,
+                    face.getUV,
                     face.vertexGroupOffset,
                     baseEdgeVertexGroupOffset
                 );
@@ -157,6 +151,7 @@ namespace MeshCreation
                         (RotationDirection) (1 - (int) actualTraversalOrder),
                         index => face.getActualVertexGroupIndex(index) + verticesData.vertexGroups.Length / 2,
                         () => -face.getFaceNormal(),
+                        face.getUV,
                         face.vertexGroupOffset,
                         baseEdgeVertexGroupOffset
                     );
@@ -173,6 +168,7 @@ namespace MeshCreation
             RotationDirection traversalOrder,
             Func<int, int> getActualVertexGroupIndex,
             Func<Vector3> getFaceNormal,
+            Func<int, Vector2> getUV,
             int vertexGroupOffset,
             int baseEdgeVertexGroupOffset
         )
@@ -239,6 +235,7 @@ namespace MeshCreation
                     }
                     
                     verticesData.normals[actualVertexIndex] = getFaceNormal();
+                    verticesData.uv[actualVertexIndex] = getUV(uniqueIndex);
                 }
 
                 tv1Indices[0] = ut1Indices[0];

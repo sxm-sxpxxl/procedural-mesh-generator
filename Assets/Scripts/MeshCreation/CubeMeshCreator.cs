@@ -68,7 +68,7 @@ namespace MeshCreation
                     return Convert.ToInt32(isXMinOrMax) + Convert.ToInt32(isYMinOrMax) + Convert.ToInt32(isZMinOrMax);
                 }
             );
-
+            
             int[] triangles = CreateTriangles(new FaceData[]
             {
                 // Forward XY face
@@ -77,6 +77,10 @@ namespace MeshCreation
                     RotationDirection.CCW,
                     i => i,
                     () => Vector3.back,
+                    i => new Vector2(
+                        x: 1f / resolution * (i / edgeVerticesCount),
+                        y: 1f / resolution * (i % edgeVerticesCount)
+                    ),
                     vertexGroupOffset: (int) Plane.XY
                 ),
                 // Backward XY face
@@ -85,6 +89,10 @@ namespace MeshCreation
                     RotationDirection.CW,
                     i => i + resolution * quadVerticesCount,
                     () => Vector3.forward,
+                    i => new Vector2(
+                        x: 1f - 1f / resolution * (i / edgeVerticesCount),
+                        y: 1f / resolution * (i % edgeVerticesCount)
+                    ),
                     vertexGroupOffset: (int) Plane.XY
                 ),
                 // Forward XZ face
@@ -93,6 +101,10 @@ namespace MeshCreation
                     RotationDirection.CCW,
                     i => i * edgeVerticesCount,
                     () => Vector3.down,
+                    i => new Vector2(
+                        x: 1f / resolution * (i % edgeVerticesCount),
+                        y: 1f - 1f / resolution * (i / edgeVerticesCount)
+                    ),
                     vertexGroupOffset: (int) Plane.XZ
                 ),
                 // Backward XZ face
@@ -101,6 +113,10 @@ namespace MeshCreation
                     RotationDirection.CW,
                     i => i * edgeVerticesCount + resolution,
                     () => Vector3.up,
+                    i => new Vector2(
+                        x: 1f / resolution * (i % edgeVerticesCount),
+                        y: 1f / resolution * (i / edgeVerticesCount)
+                    ),
                     vertexGroupOffset: (int) Plane.XZ
                 ),
                 // Forward YZ face
@@ -109,6 +125,10 @@ namespace MeshCreation
                     RotationDirection.CW,
                     i => i * edgeVerticesCount - (i % edgeVerticesCount) * resolution,
                     () => Vector3.left,
+                    i => new Vector2(
+                        x: 1f - 1f / resolution * (i / edgeVerticesCount),
+                        y: 1f / resolution * (i % edgeVerticesCount)
+                    ),
                     vertexGroupOffset: (int) Plane.YZ
                 ),
                 // Backward YZ face
@@ -117,14 +137,20 @@ namespace MeshCreation
                     RotationDirection.CCW,
                     i => (i + resolution) * edgeVerticesCount - (i % edgeVerticesCount) * resolution,
                     () => Vector3.right,
+                    i => new Vector2(
+                        x: 1f / resolution * (i / edgeVerticesCount),
+                        y: 1f / resolution * (i % edgeVerticesCount)
+                    ),
                     vertexGroupOffset: (int) Plane.YZ
                 )
             }, verticesData, baseEdgeVertexGroupOffset: (int) Plane.XY);
 
+            // todo: refactoring (triangles to verticesData (with another name))
             return new Mesh
             {
                 vertices = verticesData.vertices,
                 normals = verticesData.normals,
+                uv = verticesData.uv,
                 triangles = triangles
             };
         }

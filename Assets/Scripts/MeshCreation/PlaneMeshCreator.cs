@@ -23,25 +23,24 @@ namespace MeshCreation
                 }
             );
 
-            Vector2[] uv = CreateUV(verticesData.vertices, v => Vector3.Scale(
-                (v - offset) + (0.5f * size),
-                new Vector3(1f / size.x, 1f / size.y, 1f / size.z)
-            ));
-            
             int[] triangles = CreateTriangles(new FaceData[]
             {
                 new FaceData(
                     RotationDirection.CW,
                     i => i, 
-                    () => _meshData.isForwardFacing ? Vector3.back : Vector3.forward
+                    () => _meshData.isForwardFacing ? Vector3.back : Vector3.forward,
+                    i => new Vector2(
+                        x: 1f / resolution * (i % edgeVerticesCount),
+                        y: 1f / resolution * (i / edgeVerticesCount)
+                    )
                 )
             }, verticesData);
             
             return new Mesh
             {
                 vertices = verticesData.vertices,
-                uv = uv,
                 normals = verticesData.normals,
+                uv = verticesData.uv,
                 triangles = triangles
             };
         }
