@@ -1,12 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
+using System.Linq;
 using UnityEngine;
 
 public class Test : MonoBehaviour
 {
-    [Range(0, 3)] public int layer = 1;
+    [Range(0, 5)] public int layer = 1;
     
     [Range(0f, 1f)] public float roundness = 0f;
     public Vector2 center = new Vector2(0f, 0f);
@@ -24,6 +24,8 @@ public class Test : MonoBehaviour
             vertices[vIndex++] =  size / resolution * new Vector3(x: i % edgeLength, y: i / edgeLength) - size / 2f + center;
         }
         DrawVertices(vertices, Color.black);
+
+        int[] levels = vertices.Select((_, i) => GetLevelByVertexIndex(i)).ToArray();
 
         var r = size * (roundness / 2f);
         var roundedVertices = new Vector3[vertices.Length];
@@ -44,15 +46,34 @@ public class Test : MonoBehaviour
             Gizmos.DrawSphere(O + Vc, vertexSize);
 
             Vector3 dt = V - Vc;
+            int maxLevelWithFromCorner = Math.Max(vertices
+                .Where(v => {
+                    var dist = (v - O) - Vc;
+                    float xs = Mathf.Sign(Vector3.Dot(v, Vector3.right));
+                    float ys = Mathf.Sign(Vector3.Dot(v, Vector3.up));
+
+                    return xs * dist.x > 0 && ys * dist.y > 0;
+                })
+                .Select((_, i) => levels[i])
+                .Max() - 4, 1);
+            
+            // Debug.Log(maxLevelWithFromCorner);
             if (Xs * dt.x > 0 && Ys * dt.y > 0)
             {
-                // Vector3 n = (V - Vc).normalized;
-                // roundedVertices[i] = O + Vc + Vector3.Scale(r, n);
-                Vector3 n = (Vc - V).normalized;
-                float d = (Vc - V).magnitude;
+                Vector3 n = (V - Vc).normalized;
 
-                roundedVertices[i] = O + V + Vector3.Scale(d * Vector2.one - r, n);
-                
+                // Gizmos.color = Color.red;
+                // Gizmos.DrawSphere(V, vertexSize);
+
+                int maxLevel = GetMaxLevelByResolution();
+                int level = levels[i];
+                var rFactor = 1f - (float) level / maxLevelWithFromCorner;
+                var rByLevel = rFactor * r;
+
+                // Gizmos.color = Color.green;
+                // Gizmos.DrawWireSphere(Vc, 0.5f * roundness * rFactor);
+
+                roundedVertices[i] = O + Vc + Vector3.Scale(rByLevel, n);
                 // if (isHorizontal || isVertical)
                 // {
                 //     Gizmos.color = Color.green;
@@ -62,7 +83,7 @@ public class Test : MonoBehaviour
                 // {
                 //     Gizmos.color = Color.yellow;
                 //     Gizmos.DrawSphere(V, vertexSize);
-                //     
+                    
                 //     Gizmos.color = Color.green;
                 //     Gizmos.DrawWireSphere(Vc, 0.5f * 0.5f * roundness);
                 // }
@@ -72,29 +93,42 @@ public class Test : MonoBehaviour
                 roundedVertices[i] = O + V;
             }
             
-            if (IsInnerVertex(i, layer))
+            if (IsVertexOnLevel(i, layer))
             {
                 Gizmos.color = Color.green;
                 Gizmos.DrawSphere(V, vertexSize);
             }
         }
-        // DrawVertices(roundedVertices, Color.yellow);
+
+        DrawVertices(roundedVertices, Color.yellow);
     }
 
-    private bool IsInnerVertex(int i, int layer = 1)
+    private int GetMaxLevelByResolution()
+    {
+        return resolution / 2 + resolution % 2;
+    }
+
+    private int GetLevelByVertexIndex(int i)
+    {
+        int currentLevel = -1;
+        while (IsVertexOnLevel(i, ++currentLevel) == false) {}
+        return currentLevel;
+    }
+
+    private bool IsVertexOnLevel(int i, int level = 0)
     {
         int edgeLength = resolution + 1;
 
-        int minIndexOnLayer = edgeLength * layer + layer;
+        int minIndexOnLayer = edgeLength * level + level;
         int maxIndexOnLayer = (edgeLength * edgeLength - 1) - minIndexOnLayer;
-        bool isRightSide = (i % edgeLength) + layer < edgeLength;
-        bool isLeftSide = (i % edgeLength) >= layer;
+        bool isLeftExcludedIndexOnLayer = (i % edgeLength) >= level;
+        bool isRightExcludedIndexOnLayer = (i % edgeLength) + level < edgeLength;
 
-        bool isOnLayer = i >= minIndexOnLayer && i <= maxIndexOnLayer && isLeftSide && isRightSide;
+        bool isOnLayer = i >= minIndexOnLayer && i <= maxIndexOnLayer && isLeftExcludedIndexOnLayer && isRightExcludedIndexOnLayer;
         if (isOnLayer)
         {
-            bool isVertical = (i % edgeLength == layer || i % edgeLength == resolution - layer);
-            bool isHorizontal = (i / edgeLength == layer || i / edgeLength == resolution - layer);
+            bool isVertical = (i % edgeLength == level || i % edgeLength == resolution - level);
+            bool isHorizontal = (i / edgeLength == level || i / edgeLength == resolution - level);
 
             return isVertical || isHorizontal;
         }
@@ -118,7 +152,7 @@ public class Test : MonoBehaviour
             }
             
             Gizmos.DrawSphere(vertices[i], vertexSize);
-            Handles.Label(vertices[i], $"V[{i}]");
+            // Handles.Label(vertices[i], $"V[{i}]");
         }
     }
 
