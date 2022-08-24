@@ -9,6 +9,7 @@ namespace MeshCreation
         {
             int resolution = _meshData.resolution;
             Vector3 size = _meshData.size, offset = _meshData.offset;
+            float roundness = _meshData.roundness;
 
             int edgeVerticesCount = resolution + 1;
             int quadVerticesCount = edgeVerticesCount * edgeVerticesCount;
@@ -19,11 +20,25 @@ namespace MeshCreation
                 vertexGroupsCount: verticesCount,
                 excludedVertexGroupsCount: excludedVerticesCount,
                 initVertexPoint: (-0.5f * size) + offset,
-                getVertexPointByIndex: i => new Vector3
+                getVertexPointByIndex: i =>
                 {
-                    x = size.x / resolution * Mathf.Repeat(i / edgeVerticesCount, edgeVerticesCount),
-                    y = size.y / resolution * (i % edgeVerticesCount),
-                    z = size.z / resolution * (i / quadVerticesCount)
+                    var point = new Vector3
+                    {
+                        x = size.x / resolution * Mathf.Repeat(i / edgeVerticesCount, edgeVerticesCount),
+                        y = size.y / resolution * (i % edgeVerticesCount),
+                        z = size.z / resolution * (i / quadVerticesCount)
+                    };
+
+                    var scaledRoundness = size * (0.5f * roundness);
+                    var innerPoint = new Vector3
+                    {
+                        x = Mathf.Clamp(point.x, scaledRoundness.x, size.x - scaledRoundness.x),
+                        y = Mathf.Clamp(point.y, scaledRoundness.y, size.y - scaledRoundness.y),
+                        z = Mathf.Clamp(point.z, scaledRoundness.z, size.z - scaledRoundness.z)
+                    };
+                    
+                    var normal = (point - innerPoint).normalized;
+                    return innerPoint + Vector3.Scale(normal, scaledRoundness);
                 },
                 isVertexGroupExcluded: i =>
                 {
@@ -143,7 +158,28 @@ namespace MeshCreation
                     ),
                     vertexGroupOffset: (int) Plane.YZ
                 )
-            }, verticesData, baseEdgeVertexGroupOffset: (int) Plane.XY);
+            },
+                verticesData,
+                baseEdgeVertexGroupOffset: (int) Plane.XY,
+                getCustomNormalVertex: roundness > 0f ? i =>
+                {
+                    var point = new Vector3
+                    {
+                        x = size.x / resolution * Mathf.Repeat(i / edgeVerticesCount, edgeVerticesCount),
+                        y = size.y / resolution * (i % edgeVerticesCount),
+                        z = size.z / resolution * (i / quadVerticesCount)
+                    };
+
+                    var scaledRoundness = size * (0.5f * roundness);
+                    var innerPoint = new Vector3
+                    {
+                        x = Mathf.Clamp(point.x, scaledRoundness.x, size.x - scaledRoundness.x),
+                        y = Mathf.Clamp(point.y, scaledRoundness.y, size.y - scaledRoundness.y),
+                        z = Mathf.Clamp(point.z, scaledRoundness.z, size.z - scaledRoundness.z)
+                    };
+                    
+                    return (point - innerPoint).normalized;
+                } : null);
 
             // todo: refactoring (triangles to verticesData (with another name))
             return new Mesh

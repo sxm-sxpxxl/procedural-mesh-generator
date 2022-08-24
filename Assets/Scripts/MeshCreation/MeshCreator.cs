@@ -116,7 +116,12 @@ namespace MeshCreation
             return VerticesData;
         }
         
-        protected int[] CreateTriangles(in FaceData[] faces, VerticesData verticesData, int baseEdgeVertexGroupOffset = 0)
+        protected int[] CreateTriangles(
+            in FaceData[] faces,
+            VerticesData verticesData,
+            int baseEdgeVertexGroupOffset = 0,
+            Func<int, Vector3> getCustomNormalVertex = null
+        )
         {
             bool isBackfaceCulling = _meshData.isBackfaceCulling, isForwardFacing = _meshData.isForwardFacing;
             int oneFaceIndicesCount = GetFaceIndicesCountBy(_meshData.resolution);
@@ -139,7 +144,8 @@ namespace MeshCreation
                     face.getFaceNormal,
                     face.getUV,
                     face.vertexGroupOffset,
-                    baseEdgeVertexGroupOffset
+                    baseEdgeVertexGroupOffset,
+                    getCustomNormalVertex
                 );
 
                 if (isBackfaceCulling == false)
@@ -153,7 +159,8 @@ namespace MeshCreation
                         () => -face.getFaceNormal(),
                         face.getUV,
                         face.vertexGroupOffset,
-                        baseEdgeVertexGroupOffset
+                        baseEdgeVertexGroupOffset,
+                        getCustomNormalVertex
                     );
                 }
             }
@@ -170,7 +177,8 @@ namespace MeshCreation
             Func<Vector3> getFaceNormal,
             Func<int, Vector2> getUV,
             int vertexGroupOffset,
-            int baseEdgeVertexGroupOffset
+            int baseEdgeVertexGroupOffset,
+            Func<int, Vector3> getCustomNormalVertex
         )
         {
             int resolution = _meshData.resolution;
@@ -234,7 +242,7 @@ namespace MeshCreation
                         ut2Indices[j % 2] = actualVertexIndex;
                     }
                     
-                    verticesData.normals[actualVertexIndex] = getFaceNormal();
+                    verticesData.normals[actualVertexIndex] = getCustomNormalVertex?.Invoke(actualVertexGroupIndex) ?? getFaceNormal();
                     verticesData.uv[actualVertexIndex] = getUV(uniqueIndex);
                 }
 

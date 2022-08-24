@@ -11,6 +11,9 @@ namespace MeshCreation
         public readonly bool isForwardFacing;
         public readonly bool isBackfaceCulling;
         public readonly Func<Mesh, Mesh> postProcessCallback;
+        
+        // todo: refactoring (custom data)
+        public readonly float roundness;
 
         public MeshData(
             int resolution,
@@ -18,7 +21,8 @@ namespace MeshCreation
             Vector3 offset = default,
             bool isForwardFacing = true,
             bool isBackfaceCulling = true,
-            Func<Mesh, Mesh> postProcessCallback = null
+            Func<Mesh, Mesh> postProcessCallback = null,
+            float roundness = 0f
         )
         {
             this.resolution = resolution;
@@ -27,6 +31,7 @@ namespace MeshCreation
             this.isForwardFacing = isForwardFacing;
             this.isBackfaceCulling = isBackfaceCulling;
             this.postProcessCallback = postProcessCallback;
+            this.roundness = roundness;
         }
     }
 }

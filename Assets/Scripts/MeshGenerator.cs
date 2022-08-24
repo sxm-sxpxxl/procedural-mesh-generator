@@ -41,6 +41,8 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
     private bool isBackfaceCulling = true;
     [SerializeField, Indent(2), ShowIf(nameof(IsForwardFacingShowed)), LabelText("Forward facing")]
     private bool isForwardFacing = true;
+    [SerializeField, Indent, ShowIf(nameof(IsCubeMeshTypeSelected)), Range(0f, 1f)]
+    private float roundness = 0f;
     [Space]
     [SerializeField, HideIf(nameof(IsPlaneMeshTypeSelected))]
     private Vector3 size = Vector3.one;
@@ -78,6 +80,8 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
         .Where(x => typeof(VertexModifier).IsAssignableFrom(x));
 
     private bool IsPlaneMeshTypeSelected => meshType == MeshType.Plane;
+
+    private bool IsCubeMeshTypeSelected => meshType == MeshType.Cube;
 
     private bool IsForwardFacingShowed => IsPlaneMeshTypeSelected && isBackfaceCulling;
 
@@ -203,7 +207,7 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
     private void CreateCube()
     {
         _context.Set(new CubeMeshCreator());
-        MeshFilter.sharedMesh = _context.CreateMesh(new MeshData(resolution, size, offset));
+        MeshFilter.sharedMesh = _context.CreateMesh(new MeshData(resolution, size, offset, roundness: roundness));
         isBackfaceCulling = true;
     }
 
