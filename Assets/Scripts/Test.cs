@@ -1,34 +1,78 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 public class Test : MonoBehaviour
 {
-    [Range(0, 5)] public int layer = 1;
-    
-    [Range(0f, 1f)] public float roundness = 0f;
-    public Vector2 center = new Vector2(0f, 0f);
-    public Vector2 size = new Vector2(1f, 1f);
+    public Vector3 center = new Vector3(0f, 0f, 0f);
+    public Vector3 size = new Vector3(1f, 1f, 1f);
+
+    [Space]
+    public bool oldSolution = false;
+    [Range(0, 5)] public int layer = 0;
     [Range(1, 32)] public int resolution = 2;
+    [Range(0f, 1f)] public float roundness = 0f;
+    
+    [Header("Debug options")]
+    public bool showVertexLabel = false;
     [Range(0.01f, 0.1f)] public float vertexSize = 0.05f;
 
     private void OnDrawGizmos()
     {
-        int edgeLength = resolution + 1;
-        
-        var vertices = new Vector3[edgeLength * edgeLength];
-        for (int i = 0, vIndex = 0; i < vertices.Length; i++)
+        if (oldSolution)
         {
-            vertices[vIndex++] =  size / resolution * new Vector3(x: i % edgeLength, y: i / edgeLength) - size / 2f + center;
+            BuildSelfRoundVertices();
         }
-        DrawVertices(vertices, Color.black);
+        else
+        {
+            BuildCatlikeRoundVertices();
+        }
+    }
 
-        int[] levels = vertices.Select((_, i) => GetLevelByVertexIndex(i)).ToArray();
-
-        var r = size * (roundness / 2f);
+    private void BuildCatlikeRoundVertices()
+    {
+        int edgeLength = resolution + 1;
+        int verticesCount = (int) Mathf.Pow(edgeLength, 3);
+        var vertices = BuildVertices(verticesCount);
+        
         var roundedVertices = new Vector3[vertices.Length];
+        for (int i = 0; i < roundedVertices.Length; i++)
+        {
+            var v = vertices[i] - (-0.5f * size + center);
+            var r = size * (roundness / 2f);
+
+            var inner = new Vector3
+            (
+                x: Mathf.Clamp(v.x, r.x, size.x - r.x),
+                y: Mathf.Clamp(v.y, r.y, size.y - r.y),
+                z: Mathf.Clamp(v.z, r.z, size.z - r.z)
+            );
+
+            inner += (-0.5f * size + center);
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawSphere(inner, vertexSize);
+            
+            var n = (vertices[i] - inner).normalized;
+            roundedVertices[i] = inner + Vector3.Scale(n, r);
+            
+            Gizmos.color = new Color(1f, 0f, 0f, 0.3f);
+            Gizmos.DrawLine(inner, vertices[i]);
+        }
+        
+        DrawVertices(roundedVertices, Color.yellow, false);
+    }
+    
+    private void BuildSelfRoundVertices()
+    {
+        int edgeLength = resolution + 1;
+        var vertices = BuildVertices(edgeLength * edgeLength);
+        
+        int[] levels = vertices.Select((_, i) => GetLevelByVertexIndex(i)).ToArray();
+        var s = new Vector3(size.x, size.y);
+        var r = s * (roundness / 2f);
+        var roundedVertices = new Vector3[vertices.Length];
+        
         for (int i = 0; i < roundedVertices.Length; i++)
         {
             Vector3 O = (Vector3) center;
@@ -36,76 +80,64 @@ public class Test : MonoBehaviour
             
             float Xs = Mathf.Sign(Vector3.Dot(V, Vector3.right));
             float Ys = Mathf.Sign(Vector3.Dot(V, Vector3.up));
-            
-            Vector3 Vc = (size.x / 2f - r.x) * Xs * Vector3.right + (size.y / 2f - r.y) * Ys * Vector3.up;
-            
-            // Gizmos.color = Color.green;
-            // Gizmos.DrawWireSphere(Vc, 0.5f * roundness);
 
+            Vector3 Vc = (s.x / 2f - r.x) * Xs * Vector3.right + (s.y / 2f - r.y) * Ys * Vector3.up;
+            
             Gizmos.color = Color.red;
             Gizmos.DrawSphere(O + Vc, vertexSize);
-
-            Vector3 dt = V - Vc;
-            int maxLevelWithFromCorner = Math.Max(vertices
-                .Where(v => {
-                    var dist = (v - O) - Vc;
-                    float xs = Mathf.Sign(Vector3.Dot(v, Vector3.right));
-                    float ys = Mathf.Sign(Vector3.Dot(v, Vector3.up));
-
-                    return xs * dist.x > 0 && ys * dist.y > 0;
-                })
-                .Select((_, i) => levels[i])
-                .Max() - 4, 1);
             
-            // Debug.Log(maxLevelWithFromCorner);
-            if (Xs * dt.x > 0 && Ys * dt.y > 0)
+            Vector3 dt = V - Vc;
+            int maxLevelWithFromCorner = vertices
+                .Select((v, index) => new { level = levels[index], position = v })
+                .Where(v =>
+                {
+                    var dist = (v.position - O) - Vc;
+                    float xs = Mathf.Sign(Vc.x);
+                    float ys = Mathf.Sign(Vc.y);
+
+                    return xs * Vector3.Dot(dist, Vector3.right) > 0f && ys * Vector3.Dot(dist, Vector3.up) > 0f;
+                })
+                .Select(v => v.level)
+                .DefaultIfEmpty()
+                .Max();
+            
+            if (Xs * dt.x > 0f && Ys * dt.y > 0f)
             {
-                Vector3 n = (V - Vc).normalized;
-
-                // Gizmos.color = Color.red;
-                // Gizmos.DrawSphere(V, vertexSize);
-
-                int maxLevel = GetMaxLevelByResolution();
                 int level = levels[i];
                 var rFactor = 1f - (float) level / maxLevelWithFromCorner;
                 var rByLevel = rFactor * r;
 
-                // Gizmos.color = Color.green;
-                // Gizmos.DrawWireSphere(Vc, 0.5f * roundness * rFactor);
-
+                Vector3 n = (V - Vc).normalized;
                 roundedVertices[i] = O + Vc + Vector3.Scale(rByLevel, n);
-                // if (isHorizontal || isVertical)
-                // {
-                //     Gizmos.color = Color.green;
-                //     Gizmos.DrawSphere(V, vertexSize);
-                // }
-                // else
-                // {
-                //     Gizmos.color = Color.yellow;
-                //     Gizmos.DrawSphere(V, vertexSize);
-                    
-                //     Gizmos.color = Color.green;
-                //     Gizmos.DrawWireSphere(Vc, 0.5f * 0.5f * roundness);
-                // }
+                
+                Gizmos.color = new Color(1f, 0f, 0f, 0.3f);
+                Gizmos.DrawLine(O + Vc, roundedVertices[i]);
             }
             else
             {
                 roundedVertices[i] = O + V;
             }
-            
-            if (IsVertexOnLevel(i, layer))
-            {
-                Gizmos.color = Color.green;
-                Gizmos.DrawSphere(V, vertexSize);
-            }
         }
 
-        DrawVertices(roundedVertices, Color.yellow);
+        DrawVertices(roundedVertices, Color.yellow, false);
     }
-
-    private int GetMaxLevelByResolution()
+    
+    private Vector3[] BuildVertices(int length)
     {
-        return resolution / 2 + resolution % 2;
+        int edgeLength = resolution + 1;
+        
+        var vertices = new Vector3[length];
+        for (int i = 0, vIndex = 0; i < vertices.Length; i++)
+        {
+            vertices[vIndex++] =  new Vector3(
+                x: size.x / resolution * Mathf.Repeat(i / edgeLength, edgeLength),
+                y: size.y / resolution * (i % edgeLength),
+                z: size.z / resolution * (i / (edgeLength * edgeLength))
+            ) - size / 2f + center;
+        }
+        DrawVertices(vertices, new Color(0f, 0f, 0f, 0.3f), showVertexLabel);
+
+        return vertices;
     }
 
     private int GetLevelByVertexIndex(int i)
@@ -127,119 +159,25 @@ public class Test : MonoBehaviour
         bool isOnLayer = i >= minIndexOnLayer && i <= maxIndexOnLayer && isLeftExcludedIndexOnLayer && isRightExcludedIndexOnLayer;
         if (isOnLayer)
         {
-            bool isVertical = (i % edgeLength == level || i % edgeLength == resolution - level);
-            bool isHorizontal = (i / edgeLength == level || i / edgeLength == resolution - level);
-
+            bool isVertical = i % edgeLength == level || i % edgeLength == resolution - level;
+            bool isHorizontal = i / edgeLength == level || i / edgeLength == resolution - level;
+            
             return isVertical || isHorizontal;
         }
 
         return false;
     }
     
-    private void DrawVertices(Vector3[] vertices, Color color)
+    private void DrawVertices(Vector3[] vertices, Color color, bool showLabels)
     {
-        int edgeLength = resolution + 1;
-        
         Gizmos.color = color;
         for (int i = 0; i < vertices.Length; i++)
         {
-            bool isVertical = i % edgeLength == 0 || i % edgeLength == resolution;
-            bool isHorizontal = i / edgeLength == 0 || i / edgeLength == resolution;
-            
-            if (isVertical || isHorizontal)
-            {
-                // Gizmos.DrawSphere(vertices[i], vertexSize);
-            }
-            
             Gizmos.DrawSphere(vertices[i], vertexSize);
-            // Handles.Label(vertices[i], $"V[{i}]");
+            if (showLabels)
+            {
+                Handles.Label(vertices[i], $"V[{i}]");
+            }
         }
     }
-
-    // private void OnDrawGizmos()
-    // {
-    //     int edgeLength = resolution + 1;
-    //     var outerVertices = new Vector3[edgeLength * edgeLength];
-    //     
-    //     for (int i = 0, vIndex = 0; i < outerVertices.Length; i++)
-    //     {
-    //         outerVertices[vIndex++] =  size / resolution * new Vector3(x: i % edgeLength, y: i / edgeLength);
-    //     }
-    //
-    //     Gizmos.color = Color.black;
-    //     for (int i = 0; i < outerVertices.Length; i++)
-    //     {
-    //         bool isVertical = i % edgeLength == 0 || i % edgeLength == resolution;
-    //         bool isHorizontal = i / edgeLength == 0 || i / edgeLength == resolution;
-    //         
-    //         if (isVertical || isHorizontal)
-    //         {
-    //             Gizmos.DrawSphere(outerVertices[i], vertexSize);
-    //         }
-    //     }
-    //
-    //     var innerVertices = new Vector3[outerVertices.Length];
-    //
-    //     for (int i = 0; i < innerVertices.Length; i++)
-    //     {
-    //         innerVertices[i].x = outerVertices[i].x * (1f - roundness / size.x) + roundness / 2;
-    //         innerVertices[i].y = outerVertices[i].y * (1f - roundness / size.y) + roundness / 2;
-    //     }
-    //     
-    //     Gizmos.color = Color.white;
-    //     for (int i = 0; i < innerVertices.Length; i++)
-    //     {
-    //         bool isVertical = i % edgeLength == 0 || i % edgeLength == resolution;
-    //         bool isHorizontal = i / edgeLength == 0 || i / edgeLength == resolution;
-    //         
-    //         if (isVertical || isHorizontal)
-    //         {
-    //             Gizmos.DrawSphere(innerVertices[i], vertexSize);
-    //         }
-    //     }
-    //
-    //     Gizmos.color = Color.red;
-    //     Gizmos.DrawWireSphere(innerVertices[0], roundness/2f);
-    //
-    //     var roundedVertices = new Vector3[outerVertices.Length];
-    //
-    //     for (int i = 0; i < roundedVertices.Length; i++)
-    //     {
-    //         var delta = outerVertices[i] - innerVertices[i];
-    //         var delta2 = outerVertices[i] - innerVertices[0]; 
-    //         var normal = delta.normalized;
-    //
-    //         bool isVertical = i % edgeLength == 0 || i % edgeLength == resolution;
-    //         bool isHorizontal = i / edgeLength == 0 || i / edgeLength == resolution;
-    //         
-    //         if (isVertical || isHorizontal)
-    //         {
-    //             Gizmos.color = Color.green;
-    //             Gizmos.DrawRay(innerVertices[i], normal);
-    //         }
-    //
-    //         var r = (roundness / 2);
-    //         
-    //         if (delta2.sqrMagnitude > r * r && delta2.x < 0 && delta2.y < 0)
-    //         {
-    //             roundedVertices[i] = innerVertices[0] + (r) * delta2.normalized;
-    //         }
-    //         else
-    //         {
-    //             roundedVertices[i] = outerVertices[i];
-    //         }
-    //     }
-    //     
-    //     Gizmos.color = Color.yellow;
-    //     for (int i = 0; i < roundedVertices.Length; i++)
-    //     {
-    //         bool isVertical = i % edgeLength == 0 || i % edgeLength == resolution;
-    //         bool isHorizontal = i / edgeLength == 0 || i / edgeLength == resolution;
-    //         
-    //         if (isVertical || isHorizontal)
-    //         {
-    //             Gizmos.DrawSphere(roundedVertices[i], vertexSize);
-    //         }
-    //     }
-    // }
 }
