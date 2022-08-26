@@ -5,9 +5,9 @@ namespace MeshCreation
 {
     public abstract class MeshCreator
     {
-        public VerticesData VerticesData { get; private set; }
+        public MeshResponse MeshResponse { get; private set; }
 
-        protected MeshData _meshData;
+        protected MeshRequest meshRequest;
 
         protected enum RotationDirection
         {
@@ -39,18 +39,17 @@ namespace MeshCreation
             }
         }
         
-        public Mesh CreateMesh(in MeshData data)
+        public Mesh CreateMesh(in MeshRequest request)
         {
-            _meshData = data;
-            return data.postProcessCallback?.Invoke(CreateMesh()) ?? CreateMesh();
+            meshRequest = request;
+            return (request.postProcessCallback?.Invoke(CreateMeshResponse()) ?? CreateMeshResponse()).MeshInstance;
         }
 
-        protected abstract Mesh CreateMesh();
+        protected abstract MeshResponse CreateMeshResponse();
         
-        protected VerticesData CreateVertices(
+        protected void CreateVertices(
             int vertexGroupsCount,
             int excludedVertexGroupsCount,
-            Vector3 initVertexPoint,
             Func<int, Vector3> getVertexPointByIndex,
             Func<int, bool> isVertexGroupExcluded = null,
             Func<int, int> getVertexGroupSizeByIndex = null
@@ -58,14 +57,16 @@ namespace MeshCreation
         {
             const int excludedGroup = -1;
             
-            int groupsCountWithBackface = (_meshData.isBackfaceCulling ? 1 : 2) * vertexGroupsCount;
+            Vector3 initVertexPoint = -0.5f * meshRequest.size + meshRequest.offset;
+            
+            int groupsCountWithBackface = (meshRequest.isBackfaceCulling ? 1 : 2) * vertexGroupsCount;
             int allGroupsCount = vertexGroupsCount + excludedVertexGroupsCount;
             int allGroupsCountWithBackface = groupsCountWithBackface + excludedVertexGroupsCount;
             int currentAllGroupsSize = 0;
 
             var vertexGroups = new VertexGroup[groupsCountWithBackface];
             var excludedVertexGroupsMap = new int[allGroupsCountWithBackface];
-            
+
             for (int i = 0, vIndex = 0, currentExcludedGroupsCount = 0; i < allGroupsCount; i++)
             {
                 if (isVertexGroupExcluded?.Invoke(i) ?? false)
@@ -73,7 +74,7 @@ namespace MeshCreation
                     currentExcludedGroupsCount++;
                     excludedVertexGroupsMap[i] = excludedGroup;
                     
-                    if (_meshData.isBackfaceCulling == false)
+                    if (meshRequest.isBackfaceCulling == false)
                     {
                         excludedVertexGroupsMap[i + vertexGroupsCount] = excludedGroup;
                     }
@@ -82,7 +83,7 @@ namespace MeshCreation
                 }
                 
                 int vertexGroupSize = getVertexGroupSizeByIndex?.Invoke(i) ?? 1;
-                Vector3 vertexPosition = initVertexPoint + getVertexPointByIndex(i);
+                Vector3 vertexPosition = initVertexPoint + Vector3.Scale(getVertexPointByIndex(i), meshRequest.size);
                 
                 vertexGroups[vIndex] = new VertexGroup(
                     selfIndex: vIndex,
@@ -92,7 +93,7 @@ namespace MeshCreation
                 );
                 excludedVertexGroupsMap[i] = i - currentExcludedGroupsCount;
                 
-                if (_meshData.isBackfaceCulling == false)
+                if (meshRequest.isBackfaceCulling == false)
                 {
                     vertexGroups[vIndex + vertexGroupsCount] = new VertexGroup(
                         selfIndex: vIndex + vertexGroupsCount,
@@ -107,24 +108,22 @@ namespace MeshCreation
                 currentAllGroupsSize += vertexGroupSize - 1;
             }
 
-            VerticesData = new VerticesData(
+            MeshResponse = new MeshResponse(
                 verticesCount: allGroupsCountWithBackface + currentAllGroupsSize - excludedVertexGroupsCount,
                 vertexGroups,
-                excludedVertexGroupsMap
+                excludedVertexGroupsMap,
+                meshRequest.isBackfaceCulling
             );
-            
-            return VerticesData;
         }
         
-        protected int[] CreateTriangles(
+        protected void SetTriangles(
             in FaceData[] faces,
-            VerticesData verticesData,
             int baseEdgeVertexGroupOffset = 0,
             Func<int, Vector3> getCustomNormalVertex = null
         )
         {
-            bool isBackfaceCulling = _meshData.isBackfaceCulling, isForwardFacing = _meshData.isForwardFacing;
-            int oneFaceIndicesCount = GetFaceIndicesCountBy(_meshData.resolution);
+            bool isBackfaceCulling = meshRequest.isBackfaceCulling, isForwardFacing = meshRequest.isForwardFacing;
+            int oneFaceIndicesCount = GetFaceIndicesCountBy(meshRequest.resolution);
             int allFacesIndicesCount = (isBackfaceCulling ? 1 : 2) * faces.Length * oneFaceIndicesCount;
             var indices = new int[allFacesIndicesCount];
             
@@ -138,7 +137,7 @@ namespace MeshCreation
                 SetFace(
                     indices,
                     startIndex: i * oneFaceIndicesCount,
-                    verticesData,
+                    MeshResponse,
                     actualTraversalOrder,
                     face.getActualVertexGroupIndex,
                     face.getFaceNormal,
@@ -153,9 +152,9 @@ namespace MeshCreation
                     SetFace(
                         indices,
                         startIndex: (i + 1) * oneFaceIndicesCount,
-                        verticesData,
+                        MeshResponse,
                         (RotationDirection) (1 - (int) actualTraversalOrder),
-                        index => face.getActualVertexGroupIndex(index) + verticesData.vertexGroups.Length / 2,
+                        index => face.getActualVertexGroupIndex(index) + MeshResponse.vertexGroups.Length / 2,
                         () => -face.getFaceNormal(),
                         face.getUV,
                         face.vertexGroupOffset,
@@ -165,13 +164,13 @@ namespace MeshCreation
                 }
             }
 
-            return indices;
+            MeshResponse.SetTriangles(indices);
         }
 
         private void SetFace(
             int[] indices,
             int startIndex,
-            in VerticesData verticesData,
+            in MeshResponse meshResponse,
             RotationDirection traversalOrder,
             Func<int, int> getActualVertexGroupIndex,
             Func<Vector3> getFaceNormal,
@@ -181,10 +180,10 @@ namespace MeshCreation
             Func<int, Vector3> getCustomNormalVertex
         )
         {
-            int resolution = _meshData.resolution;
+            int resolution = meshRequest.resolution;
             int faceIndicesCount = GetFaceIndicesCountBy(resolution);
-            int[] excludedVertexGroupsMap = verticesData.excludedVertexGroupsMap;
-            VertexGroup[] vertexGroups = verticesData.vertexGroups;
+            int[] excludedVertexGroupsMap = meshResponse.excludedVertexGroupsMap;
+            VertexGroup[] vertexGroups = meshResponse.vertexGroups;
 
             int ConvertToTriangleSpace(int index) => (index % 2 == 0) ? (index / 2) : (index / 2 + (resolution + 1));
             
@@ -242,8 +241,8 @@ namespace MeshCreation
                         ut2Indices[j % 2] = actualVertexIndex;
                     }
                     
-                    verticesData.normals[actualVertexIndex] = getCustomNormalVertex?.Invoke(actualVertexGroupIndex) ?? getFaceNormal();
-                    verticesData.uv[actualVertexIndex] = getUV(uniqueIndex);
+                    meshResponse.normals[actualVertexIndex] = getCustomNormalVertex?.Invoke(actualVertexGroupIndex) ?? getFaceNormal();
+                    meshResponse.uv[actualVertexIndex] = getUV(uniqueIndex);
                 }
 
                 tv1Indices[0] = ut1Indices[0];

@@ -3,28 +3,43 @@ using UnityEngine;
 
 namespace MeshCreation
 {
-    public readonly struct VerticesData
+    public class MeshResponse
     {
         public readonly Vector3[] vertices;
         public readonly Vector3[] normals;
         public readonly Vector2[] uv;
-        
+
+        public readonly bool withBackfaceCulling;
         public readonly VertexGroup[] vertexGroups;
         public readonly int[] excludedVertexGroupsMap;
         
         private readonly int[] _vertexGroupIndices;
+        private int[] _triangles;
 
-        public VerticesData(int verticesCount, VertexGroup[] vertexGroups, int[] excludedVertexGroupsMap) : this()
+        public int VerticesLength => withBackfaceCulling ? vertices.Length : vertices.Length / 2;
+        
+        public Mesh MeshInstance => new Mesh
+        {
+            vertices = vertices,
+            normals = normals,
+            uv = uv,
+            triangles = _triangles
+        };
+        
+        public MeshResponse(int verticesCount, VertexGroup[] vertexGroups, int[] excludedVertexGroupsMap, bool withBackfaceCulling)
         {
             this.vertexGroups = vertexGroups;
             this.excludedVertexGroupsMap = excludedVertexGroupsMap;
-            
+            this.withBackfaceCulling = withBackfaceCulling;
+
             vertices = GetParametersByVertexGroups(verticesCount, group => group.position);
             normals = new Vector3[verticesCount];
             uv = new Vector2[verticesCount];
 
             _vertexGroupIndices = GetParametersByVertexGroups(verticesCount, group => group.selfIndex);
         }
+
+        public void SetTriangles(int[] triangles) => _triangles = triangles;
         
         public VertexGroup GetGroupByVertexIndex(int index) => vertexGroups[_vertexGroupIndices[index]];
 

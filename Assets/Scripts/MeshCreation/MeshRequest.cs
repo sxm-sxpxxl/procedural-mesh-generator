@@ -3,26 +3,24 @@ using UnityEngine;
 
 namespace MeshCreation
 {
-    public readonly struct MeshData
+    public class MeshRequest
     {
         public readonly int resolution;
         public readonly Vector3 size;
         public readonly Vector3 offset;
         public readonly bool isForwardFacing;
         public readonly bool isBackfaceCulling;
-        public readonly Func<Mesh, Mesh> postProcessCallback;
+        public readonly Func<MeshResponse, MeshResponse> postProcessCallback;
+        public readonly object customData;
         
-        // todo: refactoring (custom data)
-        public readonly float roundness;
-
-        public MeshData(
+        public MeshRequest(
             int resolution,
             Vector3 size,
             Vector3 offset = default,
             bool isForwardFacing = true,
             bool isBackfaceCulling = true,
-            Func<Mesh, Mesh> postProcessCallback = null,
-            float roundness = 0f
+            Func<MeshResponse, MeshResponse> postProcessCallback = null,
+            object customData = default
         )
         {
             this.resolution = resolution;
@@ -31,7 +29,7 @@ namespace MeshCreation
             this.isForwardFacing = isForwardFacing;
             this.isBackfaceCulling = isBackfaceCulling;
             this.postProcessCallback = postProcessCallback;
-            this.roundness = roundness;
+            this.customData = customData;
         }
     }
 }

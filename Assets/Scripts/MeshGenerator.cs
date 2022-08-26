@@ -64,15 +64,9 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
 
     [NonSerialized] private MeshFilter _meshFilter;
 
-    private enum MeshType
-    {
-        Plane,
-        Cube
-    }
+    private readonly MeshCreatorContext _context = new MeshCreatorContext(MeshType.Plane);
 
-    private readonly MeshCreatorContext _context = new MeshCreatorContext(new PlaneMeshCreator());
-
-    private MeshFilter MeshFilter => _meshFilter ?? GetComponent<MeshFilter>();
+    private MeshFilter MeshFilter => _meshFilter ? _meshFilter : GetComponent<MeshFilter>();
     
     private IEnumerable<Type> GetModifierTypes() => typeof(VertexModifier).Assembly.GetTypes()
         .Where(x => !x.IsAbstract)
@@ -87,81 +81,20 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
 
     private void OnDrawGizmos()
     {
-        var sharedMesh = MeshFilter.sharedMesh;
-        var vertices = sharedMesh.vertices;
-        var normals = sharedMesh.normals;
-        
-        if (vertices.Length == 0)
-        {
-            Debug.LogWarning("No vertices.");
-            return;
-        }
-        
         if (areVerticesShowed == false)
         {
             return;
         }
         
-        var verticesData = _context.VerticesData;
-        int verticesCount = isBackfaceCulling ? verticesData.vertices.Length : verticesData.vertices.Length / 2;
-        var showedVertexGroups = new List<int>(capacity: verticesData.vertexGroups.Length);
-        
-        for (int i = 0; i < verticesCount; i++)
-        {
-            Vector3 actualVertexPosition = transform.TransformPoint(vertices[i]);
-
-            Gizmos.color = vertexColor;
-            Gizmos.DrawSphere(actualVertexPosition, vertexSize);
-            
-            VertexGroup targetGroup = verticesData.GetGroupByVertexIndex(i);
-            if (isVertexLabelShowed && showedVertexGroups.Contains(targetGroup.selfIndex) == false)
-            {
-                StringBuilder vertexLabel = new StringBuilder();
-                
-                if (isDuplicatedVerticesShowed)
-                {
-                    vertexLabel.Append("V[");
-                    
-                    if (targetGroup.hasSingleVertex)
-                    {
-                        vertexLabel.Append(targetGroup.singleIndex);
-                    }
-                    else
-                    {
-                        vertexLabel.AppendJoin(',', targetGroup.indices);
-                    }
-
-                    if (isBackfaceCulling == false)
-                    {
-                        vertexLabel.Append($",{i + verticesCount}");
-                    }
-                
-                    vertexLabel.Append(']');
-                }
-                else
-                {
-                    vertexLabel.Append($"V[{targetGroup.selfIndex}]");
-                }
-                
-                Handles.Label(actualVertexPosition, vertexLabel.ToString());
-                showedVertexGroups.Add(targetGroup.selfIndex);
-            }
-            
-            if (normals.Length == 0)
-            {
-                // todo: refactoring (too many editor logs)
-                // Debug.LogWarning("No vertex normals.");
-            }
-            else if (isVertexNormalShowed)
-            {
-                Gizmos.color = Color.yellow;
-                Gizmos.DrawRay(actualVertexPosition, transform.TransformDirection(normalsSize * normals[i]));
-                if (isBackfaceCulling == false)
-                {
-                    Gizmos.DrawRay(actualVertexPosition, transform.TransformDirection(normalsSize * normals[i + verticesCount]));
-                }
-            }
-        }
+        _context.DrawDebug(
+            transform,
+            vertexSize,
+            vertexColor,
+            isVertexLabelShowed,
+            isDuplicatedVerticesShowed,
+            isVertexNormalShowed,
+            normalsSize
+        );
     }
     
     private void OnDrawGizmosSelected()
@@ -206,37 +139,37 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
 
     private void CreateCube()
     {
-        _context.Set(new CubeMeshCreator());
-        MeshFilter.sharedMesh = _context.CreateMesh(new MeshData(resolution, size, offset, roundness: roundness));
+        MeshFilter.sharedMesh = _context.Set(MeshType.Cube).CreateMesh(new MeshRequest(
+            resolution,
+            size,
+            offset,
+            customData: (object) roundness
+        ));
+        
         isBackfaceCulling = true;
     }
 
     private void CreatePlane()
     {
-        _context.Set(new PlaneMeshCreator());
-        
         var virtualPlane = Plane.XY;
-        MeshFilter.sharedMesh = _context.CreateMesh(new MeshData(
+        MeshFilter.sharedMesh = _context.Set(MeshType.Plane).CreateMesh(new MeshRequest(
             resolution,
             planeSize.AsFor(virtualPlane),
             offset,
             isForwardFacing,
             isBackfaceCulling,
-            mesh =>
+            meshResponse =>
             {
-                var vertices = mesh.vertices;
-                var normals = mesh.normals;
+                var vertices = meshResponse.vertices;
+                var normals = meshResponse.normals;
                 
                 for (int i = 0; i < vertices.Length; i++)
                 {
                     vertices[i] = (vertices[i] - offset).AsFor(plane, virtualPlane) + offset;
                     normals[i] = normals[i].AsFor(plane, virtualPlane);
                 }
-
-                mesh.vertices = vertices;
-                mesh.normals = normals;
-
-                return mesh;
+                
+                return meshResponse;
             }
         ));
     }
