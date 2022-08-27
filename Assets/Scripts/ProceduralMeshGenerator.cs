@@ -1,18 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 using MeshCreation;
 
 [RequireComponent(typeof(MeshFilter)), RequireComponent(typeof(MeshRenderer))]
 [DisallowMultipleComponent, ExecuteAlways]
-public sealed class MeshGenerator : SerializedMonoBehaviour
+public sealed class ProceduralMeshGenerator : SerializedMonoBehaviour
 {
     [SerializeField, FoldoutGroup("Debug options"), LabelText("Show vertices")]
     private bool areVerticesShowed = true;
@@ -74,11 +70,18 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
         .Where(x => typeof(VertexModifier).IsAssignableFrom(x));
 
     private bool IsPlaneMeshTypeSelected => meshType == MeshType.Plane;
-
+    
     private bool IsCubeMeshTypeSelected => meshType == MeshType.Cube;
-
+    
     private bool IsForwardFacingShowed => IsPlaneMeshTypeSelected && isBackfaceCulling;
 
+    private static readonly Dictionary<MeshType, string> _meshTypeNames = new Dictionary<MeshType, string>
+    {
+        { MeshType.Plane, "Procedural Plane" },
+        { MeshType.Cube, "Procedural Cube" },
+        { MeshType.Sphere, "Procedural Sphere" }
+    };
+    
     private void OnDrawGizmos()
     {
         if (areVerticesShowed == false)
@@ -135,11 +138,25 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
     {
         if (meshType == MeshType.Plane) CreatePlane();
         if (meshType == MeshType.Cube) CreateCube();
+        if (meshType == MeshType.Sphere) CreateSphere();
+    }
+
+    private void CreateSphere()
+    {
+        MeshFilter.sharedMesh = _context.SetType(MeshType.Sphere).CreateMesh(new MeshRequest(
+            _meshTypeNames[MeshType.Sphere],
+            resolution,
+            size,
+            offset
+        ));
+
+        isBackfaceCulling = true;
     }
 
     private void CreateCube()
     {
-        MeshFilter.sharedMesh = _context.Set(MeshType.Cube).CreateMesh(new MeshRequest(
+        MeshFilter.sharedMesh = _context.SetType(MeshType.Cube).CreateMesh(new MeshRequest(
+            _meshTypeNames[MeshType.Cube],
             resolution,
             size,
             offset,
@@ -152,10 +169,12 @@ public sealed class MeshGenerator : SerializedMonoBehaviour
     private void CreatePlane()
     {
         var virtualPlane = Plane.XY;
-        MeshFilter.sharedMesh = _context.Set(MeshType.Plane).CreateMesh(new MeshRequest(
+        MeshFilter.sharedMesh = _context.SetType(MeshType.Plane).CreateMesh(new MeshRequest(
+            _meshTypeNames[MeshType.Plane],
             resolution,
             planeSize.AsFor(virtualPlane),
             offset,
+            isScalingAndOffsetting: true,
             isForwardFacing,
             isBackfaceCulling,
             meshResponse =>

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace MeshCreation
 {
-    public readonly struct VertexGroup
+    internal readonly struct VertexGroup
     {
         public readonly int selfIndex;
         public readonly bool hasSingleVertex;

@@ -3,12 +3,12 @@ using UnityEngine;
 
 namespace MeshCreation
 {
-    public abstract class MeshCreator
+    internal abstract class MeshCreator
     {
-        public MeshResponse MeshResponse { get; private set; }
-
         protected MeshRequest meshRequest;
-
+        
+        public MeshResponse LastMeshResponse { get; protected set; }
+        
         protected enum RotationDirection
         {
             CW = 0, // Clockwise
@@ -39,13 +39,31 @@ namespace MeshCreation
             }
         }
         
-        public Mesh CreateMesh(in MeshRequest request)
+        public Mesh CreateMesh(in MeshRequest request) => GetResponseTo(request).MeshInstance;
+        
+        public MeshResponse GetResponseTo(in MeshRequest request)
         {
             meshRequest = request;
-            return (request.postProcessCallback?.Invoke(CreateMeshResponse()) ?? CreateMeshResponse()).MeshInstance;
+            return request.postProcessCallback?.Invoke(HandleRequest()) ?? HandleRequest();
         }
+        
+        protected abstract MeshResponse HandleRequest();
 
-        protected abstract MeshResponse CreateMeshResponse();
+        protected void ScaleAndOffset()
+        {
+            if (meshRequest.isScalingAndOffsetting == false)
+            {
+                return;
+            }
+            
+            var vertices = LastMeshResponse.vertices;
+            var initialPoint = -0.5f * meshRequest.size + meshRequest.offset;
+            
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                vertices[i] = initialPoint + Vector3.Scale(vertices[i], meshRequest.size);
+            }
+        }
         
         protected void CreateVertices(
             int vertexGroupsCount,
@@ -56,8 +74,6 @@ namespace MeshCreation
         )
         {
             const int excludedGroup = -1;
-            
-            Vector3 initVertexPoint = -0.5f * meshRequest.size + meshRequest.offset;
             
             int groupsCountWithBackface = (meshRequest.isBackfaceCulling ? 1 : 2) * vertexGroupsCount;
             int allGroupsCount = vertexGroupsCount + excludedVertexGroupsCount;
@@ -83,7 +99,7 @@ namespace MeshCreation
                 }
                 
                 int vertexGroupSize = getVertexGroupSizeByIndex?.Invoke(i) ?? 1;
-                Vector3 vertexPosition = initVertexPoint + Vector3.Scale(getVertexPointByIndex(i), meshRequest.size);
+                Vector3 vertexPosition = getVertexPointByIndex(i);
                 
                 vertexGroups[vIndex] = new VertexGroup(
                     selfIndex: vIndex,
@@ -108,7 +124,8 @@ namespace MeshCreation
                 currentAllGroupsSize += vertexGroupSize - 1;
             }
 
-            MeshResponse = new MeshResponse(
+            LastMeshResponse = new MeshResponse(
+                meshRequest.name,
                 verticesCount: allGroupsCountWithBackface + currentAllGroupsSize - excludedVertexGroupsCount,
                 vertexGroups,
                 excludedVertexGroupsMap,
@@ -116,11 +133,7 @@ namespace MeshCreation
             );
         }
         
-        protected void SetTriangles(
-            in FaceData[] faces,
-            int baseEdgeVertexGroupOffset = 0,
-            Func<int, Vector3> getCustomNormalVertex = null
-        )
+        protected void SetTriangles(in FaceData[] faces, int baseEdgeVertexGroupOffset = 0)
         {
             bool isBackfaceCulling = meshRequest.isBackfaceCulling, isForwardFacing = meshRequest.isForwardFacing;
             int oneFaceIndicesCount = GetFaceIndicesCountBy(meshRequest.resolution);
@@ -137,14 +150,13 @@ namespace MeshCreation
                 SetFace(
                     indices,
                     startIndex: i * oneFaceIndicesCount,
-                    MeshResponse,
+                    LastMeshResponse,
                     actualTraversalOrder,
                     face.getActualVertexGroupIndex,
                     face.getFaceNormal,
                     face.getUV,
                     face.vertexGroupOffset,
-                    baseEdgeVertexGroupOffset,
-                    getCustomNormalVertex
+                    baseEdgeVertexGroupOffset
                 );
 
                 if (isBackfaceCulling == false)
@@ -152,19 +164,18 @@ namespace MeshCreation
                     SetFace(
                         indices,
                         startIndex: (i + 1) * oneFaceIndicesCount,
-                        MeshResponse,
+                        LastMeshResponse,
                         (RotationDirection) (1 - (int) actualTraversalOrder),
-                        index => face.getActualVertexGroupIndex(index) + MeshResponse.vertexGroups.Length / 2,
+                        index => face.getActualVertexGroupIndex(index) + LastMeshResponse.vertexGroups.Length / 2,
                         () => -face.getFaceNormal(),
                         face.getUV,
                         face.vertexGroupOffset,
-                        baseEdgeVertexGroupOffset,
-                        getCustomNormalVertex
+                        baseEdgeVertexGroupOffset
                     );
                 }
             }
 
-            MeshResponse.SetTriangles(indices);
+            LastMeshResponse.SetTriangles(indices);
         }
 
         private void SetFace(
@@ -176,8 +187,7 @@ namespace MeshCreation
             Func<Vector3> getFaceNormal,
             Func<int, Vector2> getUV,
             int vertexGroupOffset,
-            int baseEdgeVertexGroupOffset,
-            Func<int, Vector3> getCustomNormalVertex
+            int baseEdgeVertexGroupOffset
         )
         {
             int resolution = meshRequest.resolution;
@@ -240,8 +250,8 @@ namespace MeshCreation
                     {
                         ut2Indices[j % 2] = actualVertexIndex;
                     }
-                    
-                    meshResponse.normals[actualVertexIndex] = getCustomNormalVertex?.Invoke(actualVertexGroupIndex) ?? getFaceNormal();
+
+                    meshResponse.normals[actualVertexIndex] = getFaceNormal();
                     meshResponse.uv[actualVertexIndex] = getUV(uniqueIndex);
                 }
 

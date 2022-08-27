@@ -12,7 +12,8 @@ namespace MeshCreation
     public enum MeshType
     {
         Plane,
-        Cube
+        Cube,
+        Sphere
     }
     
     public sealed class MeshCreatorContext
@@ -21,7 +22,7 @@ namespace MeshCreation
         
         public MeshCreatorContext(MeshType type)
         {
-            Set(type);
+            SetType(type);
         }
 
         public void DrawDebug(
@@ -34,7 +35,7 @@ namespace MeshCreation
             float normalsSize = 0.1f
         )
         {
-            var meshResponse = _meshCreator.MeshResponse;
+            var meshResponse = _meshCreator.LastMeshResponse;
             
             var vertices = meshResponse.vertices;
             var normals = meshResponse.normals;
@@ -45,7 +46,7 @@ namespace MeshCreation
                 return;
             }
             
-            int verticesLength = meshResponse.VerticesLength;
+            int verticesLength = meshResponse.BackfaceAdjustedVerticesLength;
             var showedVertexGroups = new List<int>(capacity: meshResponse.vertexGroups.Length);
 
             for (int i = 0; i < verticesLength; i++)
@@ -108,12 +109,13 @@ namespace MeshCreation
             }
         }
 
-        public MeshCreatorContext Set(MeshType type)
+        public MeshCreatorContext SetType(MeshType type)
         {
             _meshCreator = type switch
             {
                 MeshType.Plane => new PlaneMeshCreator(),
                 MeshType.Cube => new CubeMeshCreator(),
+                MeshType.Sphere => new SphereMeshCreator(),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, "MeshType was undefined!")
             };
             

@@ -1,33 +1,43 @@
 ﻿using System;
+using Codice.CM.SemanticMerge.Gui;
 using UnityEngine;
 
 namespace MeshCreation
 {
-    public class MeshResponse
+    public sealed class MeshResponse
     {
+        public readonly string meshName;
         public readonly Vector3[] vertices;
         public readonly Vector3[] normals;
         public readonly Vector2[] uv;
-
-        public readonly bool withBackfaceCulling;
-        public readonly VertexGroup[] vertexGroups;
-        public readonly int[] excludedVertexGroupsMap;
         
+        internal readonly bool withBackfaceCulling;
+        internal readonly int[] excludedVertexGroupsMap;
+        internal readonly VertexGroup[] vertexGroups;
+
         private readonly int[] _vertexGroupIndices;
         private int[] _triangles;
 
-        public int VerticesLength => withBackfaceCulling ? vertices.Length : vertices.Length / 2;
+        internal int BackfaceAdjustedVerticesLength => withBackfaceCulling ? vertices.Length : vertices.Length / 2;
         
-        public Mesh MeshInstance => new Mesh
+        internal Mesh MeshInstance => new Mesh
         {
+            name = meshName,
             vertices = vertices,
             normals = normals,
             uv = uv,
             triangles = _triangles
         };
         
-        public MeshResponse(int verticesCount, VertexGroup[] vertexGroups, int[] excludedVertexGroupsMap, bool withBackfaceCulling)
+        internal MeshResponse(
+            string meshName,
+            int verticesCount,
+            VertexGroup[] vertexGroups,
+            int[] excludedVertexGroupsMap,
+            bool withBackfaceCulling
+        )
         {
+            this.meshName = meshName;
             this.vertexGroups = vertexGroups;
             this.excludedVertexGroupsMap = excludedVertexGroupsMap;
             this.withBackfaceCulling = withBackfaceCulling;
@@ -39,9 +49,9 @@ namespace MeshCreation
             _vertexGroupIndices = GetParametersByVertexGroups(verticesCount, group => group.selfIndex);
         }
 
-        public void SetTriangles(int[] triangles) => _triangles = triangles;
+        internal void SetTriangles(int[] triangles) => _triangles = triangles;
         
-        public VertexGroup GetGroupByVertexIndex(int index) => vertexGroups[_vertexGroupIndices[index]];
+        internal VertexGroup GetGroupByVertexIndex(int index) => vertexGroups[_vertexGroupIndices[index]];
 
         private T[] GetParametersByVertexGroups<T>(int verticesCount, Func<VertexGroup, T> getParameter) where T : struct
         {

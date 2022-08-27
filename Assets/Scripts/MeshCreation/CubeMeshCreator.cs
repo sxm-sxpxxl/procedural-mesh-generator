@@ -3,25 +3,12 @@ using UnityEngine;
 
 namespace MeshCreation
 {
-    public sealed class CubeMeshCreator : MeshCreator
+    internal sealed class CubeMeshCreator : MeshCreator
     {
-        private struct VertexData
-        {
-            public Vector3 position;
-            public Vector3 normal;
-
-            public VertexData(Vector3 position, Vector3 normal)
-            {
-                this.position = position;
-                this.normal = normal;
-            }
-        }
-        
-        protected override MeshResponse CreateMeshResponse()
+        protected override MeshResponse HandleRequest()
         {
             int resolution = meshRequest.resolution;
-            Vector3 size = meshRequest.size, offset = meshRequest.offset;
-            float roundness = (float) meshRequest.customData;
+            float distanceBetweenVertices = 1f / resolution;
 
             int edgeVerticesCount = resolution + 1;
             int quadVerticesCount = edgeVerticesCount * edgeVerticesCount;
@@ -31,7 +18,11 @@ namespace MeshCreation
             CreateVertices(
                 vertexGroupsCount: verticesCount,
                 excludedVertexGroupsCount: excludedVerticesCount,
-                getVertexPointByIndex: i => GetVertexDataBy(i).position,
+                getVertexPointByIndex: i => distanceBetweenVertices * new Vector3(
+                    x: Mathf.Repeat((int) (i / edgeVerticesCount), edgeVerticesCount),
+                    y: (i % edgeVerticesCount),
+                    z: (int) (i / quadVerticesCount)
+                ),
                 isVertexGroupExcluded: i =>
                 {
                     int minValidIndex = quadVerticesCount;
@@ -45,12 +36,11 @@ namespace MeshCreation
                     int firstInvalidIndex = quadVerticesCount + edgeVerticesCount + 1;
                     int diff = i - firstInvalidIndex;
 
-                    var currentMultipliers = new Vector3Int
-                    {
-                        x = diff / quadVerticesCount,
-                        y = (diff % quadVerticesCount) / edgeVerticesCount,
-                        z = (diff % quadVerticesCount) % edgeVerticesCount
-                    };
+                    var currentMultipliers = new Vector3Int(
+                        x: diff / quadVerticesCount,
+                        y: (diff % quadVerticesCount) / edgeVerticesCount,
+                        z: (diff % quadVerticesCount) % edgeVerticesCount
+                    );
 
                     for (int j = 0; j < 3; j++)
                     {
@@ -150,43 +140,41 @@ namespace MeshCreation
                     ),
                     vertexGroupOffset: (int) Plane.YZ
                 )
-            },
-                baseEdgeVertexGroupOffset: (int) Plane.XY,
-                getCustomNormalVertex: roundness > 0f ? i => GetVertexDataBy(i).normal : null
-            );
+            }, baseEdgeVertexGroupOffset: (int) Plane.XY);
             
-            return MeshResponse;
+            RoundCube();
+            ScaleAndOffset();
+            
+            return LastMeshResponse;
         }
 
-        private VertexData GetVertexDataBy(int index)
+        private void RoundCube()
         {
-            int resolution = meshRequest.resolution;
-            int edgeVerticesCount = resolution + 1;
-            int quadVerticesCount = edgeVerticesCount * edgeVerticesCount;
-            float distanceBetweenVertices = 1f / resolution;
-            
-            var withoutRoundnessPoint = new Vector3
-            {
-                x = distanceBetweenVertices * Mathf.Repeat((int) (index / edgeVerticesCount), edgeVerticesCount),
-                y = distanceBetweenVertices * (index % edgeVerticesCount),
-                z = distanceBetweenVertices * (int) (index / quadVerticesCount)
-            };
-            
             float roundness = (float) meshRequest.customData;
-            float halfRoundness = 0.5f * roundness;
-            float maxBorder = 1f - halfRoundness;
-            
-            var innerPoint = new Vector3
+            if (roundness <= 0)
             {
-                x = Mathf.Clamp(withoutRoundnessPoint.x, halfRoundness, maxBorder),
-                y = Mathf.Clamp(withoutRoundnessPoint.y, halfRoundness, maxBorder),
-                z = Mathf.Clamp(withoutRoundnessPoint.z, halfRoundness, maxBorder)
-            };
+                return;
+            }
             
-            var normal = (withoutRoundnessPoint - innerPoint).normalized;
-            var actualPosition = innerPoint + normal * halfRoundness;
+            var vertices = LastMeshResponse.vertices;
+            var normals = LastMeshResponse.normals;
             
-            return new VertexData(actualPosition, normal);
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                var cubePoint = vertices[i];
+                
+                float halfRoundness = 0.5f * roundness;
+                float maxBorder = 1f - halfRoundness;
+
+                var innerCubePoint = new Vector3(
+                    x: Mathf.Clamp(cubePoint.x, halfRoundness, maxBorder),
+                    y: Mathf.Clamp(cubePoint.y, halfRoundness, maxBorder),
+                    z: Mathf.Clamp(cubePoint.z, halfRoundness, maxBorder)
+                );
+                
+                normals[i] = (cubePoint - innerCubePoint).normalized;
+                vertices[i] = innerCubePoint + normals[i] * halfRoundness;
+            }
         }
     }
 }
