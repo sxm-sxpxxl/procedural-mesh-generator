@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace MeshCreation
+namespace Sxm.ProceduralMeshGenerator.Creation
 {
     public sealed class MeshRequest
     {

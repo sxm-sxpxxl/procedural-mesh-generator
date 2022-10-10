@@ -1,8 +1,7 @@
 ﻿using System;
-using Codice.CM.SemanticMerge.Gui;
 using UnityEngine;
 
-namespace MeshCreation
+namespace Sxm.ProceduralMeshGenerator.Creation
 {
     public sealed class MeshResponse
     {

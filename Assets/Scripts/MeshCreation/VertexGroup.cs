@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using UnityEngine;
 
-namespace MeshCreation
+namespace Sxm.ProceduralMeshGenerator.Creation
 {
     internal readonly struct VertexGroup
     {

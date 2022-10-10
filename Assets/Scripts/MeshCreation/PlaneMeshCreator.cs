@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace MeshCreation
+namespace Sxm.ProceduralMeshGenerator.Creation
 {
     internal sealed class PlaneMeshCreator : MeshCreator
     {

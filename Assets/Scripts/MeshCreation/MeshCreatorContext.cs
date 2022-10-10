@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-namespace MeshCreation
+namespace Sxm.ProceduralMeshGenerator.Creation
 {
     public enum MeshType
     {
