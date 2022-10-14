@@ -1,4 +1,8 @@
 ﻿using UnityEngine;
+using Unity.Jobs;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Mathematics;
 
 namespace Sxm.ProceduralMeshGenerator.Modification
 {
@@ -34,7 +38,7 @@ namespace Sxm.ProceduralMeshGenerator.Modification
             for (int i = 0; i < verticesCount; i++)
             {
                 x = innerRadius + i * dt;
-                y = MathUtils.FalloffSin2pi(amplitude, frequency, falloff, x, t);
+                y = MathUtils.FalloffSin2PI(amplitude, frequency, falloff, x, t);
                 
                 vertices[i] = new Vector3(x, y);
                 symmetricalVertices[i] = new Vector3(-x, y);
@@ -43,7 +47,7 @@ namespace Sxm.ProceduralMeshGenerator.Modification
             GizmosUtils.DrawCurve(vertices, transform, Color.red);
             GizmosUtils.DrawCurve(symmetricalVertices, transform, Color.red);
 
-            float innerHeight = MathUtils.FalloffSin2pi(amplitude, frequency, falloff, innerRadius, t);
+            float innerHeight = MathUtils.FalloffSin2PI(amplitude, frequency, falloff, innerRadius, t);
             float outerHeight = vertices[^1].y;
             
             GizmosUtils.DrawCircle(DebugVerticesResolution, innerRadius, innerHeight, transform, Color.red);
@@ -52,24 +56,54 @@ namespace Sxm.ProceduralMeshGenerator.Modification
 
         public override Vector3[] Modify(in Vector3[] vertices)
         {
-            float t = ScaledTime;
-            Matrix4x4 meshToAxis = meshTransform.localToWorldMatrix * Axis.worldToLocalMatrix;
-            Matrix4x4 axisToMesh = meshToAxis.inverse;
-
-            for (int i = 0; i < vertices.Length; i++)
+            (float4x4 meshToAxis, float4x4 axisToMesh) = MathUtils.GetFromToTransform(meshTransform, Axis);
+            var nativeVertices = NativeUtils.GetNativeArrayFrom(vertices, Allocator.TempJob);
+            
+            new RippleModifyJob
             {
-                var localAxisVertex = meshToAxis.MultiplyPoint3x4(vertices[i]);
-                
-                float distanceToCenter = new Vector3(localAxisVertex.x, 0f, localAxisVertex.z).magnitude;
-                var clampedDistance = Mathf.Clamp(distanceToCenter, innerRadius, outerRadius);
+                amplitude = amplitude,
+                frequency = frequency,
+                falloff = falloff,
+                scaledTime = ScaledTime,
+                innerRadius = innerRadius,
+                outerRadius = outerRadius,
+                meshToAxis = meshToAxis,
+                axisToMesh = axisToMesh,
+                vertices = nativeVertices
+            }.Schedule(nativeVertices.Length, 0).Complete();
 
-                var offset = MathUtils.FalloffSin2pi(amplitude, frequency, falloff, clampedDistance, t);
-                localAxisVertex.y += offset;
-                
-                vertices[i] = axisToMesh.MultiplyPoint3x4(localAxisVertex);
-            }
+            NativeUtils.SetNativeArrayTo(nativeVertices, vertices);
+            nativeVertices.Dispose();
             
             return vertices;
+        }
+    }
+    
+    [BurstCompile(CompileSynchronously = true)]
+    internal struct RippleModifyJob : IJobParallelFor
+    {
+        [ReadOnly] public float amplitude;
+        [ReadOnly] public float frequency;
+        [ReadOnly] public float falloff;
+        [ReadOnly] public float scaledTime;
+        [ReadOnly] public float innerRadius;
+        [ReadOnly] public float outerRadius;
+        [ReadOnly] public float4x4 meshToAxis;
+        [ReadOnly] public float4x4 axisToMesh;
+
+        public NativeArray<float3> vertices;
+        
+        public void Execute(int index)
+        {
+            float4 localAxisVertex = math.mul(meshToAxis, new float4(vertices[index], 1f));
+
+            float distanceToCenter = math.length(localAxisVertex.xz);
+            float clampedDistance = math.clamp(distanceToCenter, innerRadius, outerRadius);
+
+            float offset = MathUtils.FalloffSin2PI(amplitude, frequency, falloff, clampedDistance, scaledTime);
+            localAxisVertex.y += offset;
+
+            vertices[index] = math.mul(axisToMesh, localAxisVertex).xyz;
         }
     }
 }

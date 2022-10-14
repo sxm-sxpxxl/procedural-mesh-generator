@@ -1,4 +1,8 @@
 ﻿using UnityEngine;
+using Unity.Jobs;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Mathematics;
 
 namespace Sxm.ProceduralMeshGenerator.Modification
 {
@@ -21,7 +25,7 @@ namespace Sxm.ProceduralMeshGenerator.Modification
             for (int i = 0; i < points.Length; i++)
             {
                 x = -0.5f + i * dt;
-                y = MathUtils.FalloffSin2pi(amplitude, frequency, falloff, x, t);
+                y = MathUtils.FalloffSin2PI(amplitude, frequency, falloff, x, t);
             
                 points[i] = new Vector3(x, y);
             }
@@ -31,20 +35,46 @@ namespace Sxm.ProceduralMeshGenerator.Modification
 
         public override Vector3[] Modify(in Vector3[] vertices)
         {
-            float t = ScaledTime;
-            Matrix4x4 meshToAxis = meshTransform.localToWorldMatrix * Axis.worldToLocalMatrix;
-            Matrix4x4 axisToMesh = meshToAxis.inverse;
-
-            for (int i = 0; i < vertices.Length; i++)
-            {
-                var localAxisVertex = meshToAxis.MultiplyPoint3x4(vertices[i]);
-                var offset = MathUtils.FalloffSin2pi(amplitude, frequency, falloff, localAxisVertex.x, t);
-                localAxisVertex.y += offset;
+            (float4x4 meshToAxis, float4x4 axisToMesh) = MathUtils.GetFromToTransform(meshTransform, Axis);
+            var nativeVertices = NativeUtils.GetNativeArrayFrom(vertices, Allocator.TempJob);
             
-                vertices[i] = axisToMesh.MultiplyPoint3x4(localAxisVertex);
-            }
-        
+            new SineModifyJob
+            {
+                amplitude = amplitude,
+                falloff = falloff,
+                meshToAxis = meshToAxis,
+                axisToMesh = axisToMesh,
+                frequency = frequency,
+                scaledTime = ScaledTime,
+                vertices = nativeVertices
+            }.Schedule(nativeVertices.Length, 0).Complete();
+
+            NativeUtils.SetNativeArrayTo(nativeVertices, vertices);
+            nativeVertices.Dispose();
+            
             return vertices;
+        }
+    }
+    
+    [BurstCompile(CompileSynchronously = true)]
+    internal struct SineModifyJob : IJobParallelFor
+    {
+        [ReadOnly] public float amplitude;
+        [ReadOnly] public float frequency;
+        [ReadOnly] public float falloff;
+        [ReadOnly] public float scaledTime;
+        [ReadOnly] public float4x4 meshToAxis;
+        [ReadOnly] public float4x4 axisToMesh;
+
+        public NativeArray<float3> vertices;
+        
+        public void Execute(int index)
+        {
+            float4 localAxisVertex = math.mul(meshToAxis, new float4(vertices[index], 1f));
+            float offset = MathUtils.FalloffSin2PI(amplitude, frequency, falloff, localAxisVertex.x, scaledTime);
+            localAxisVertex.y += offset;
+
+            vertices[index] = math.mul(axisToMesh, localAxisVertex).xyz;
         }
     }
 }
