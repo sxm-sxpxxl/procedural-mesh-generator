@@ -1,0 +1,35 @@
+.foldout-group {
+    align-items: auto;
+    background-color: rgba(37,37,37,0.3);
+}
+
+#content {
+    align-items: flex-start;
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+.foldout-group__toggle {
+    flex-basis: auto;
+    flex-direction: row-reverse;
+    flex-grow: 1;
+}
+
+.foldout-group__toggle > .unity-toggle__input {
+    flex-grow: 0;
+    margin-left: 0px;
+}
+
+.foldout-group__toggle > .unity-toggle__label {
+    flex-grow: 1;
+    margin-left: 0px;
+    -unity-font-style: bold;
+}
+
+.foldout-group__toggle > .unity-toggle__input > .unity-toggle__checkmark {
+    background-image: resource('uipackageresources/images/d_in_foldout.png');
+}
+
+.foldout-group__toggle > .unity-toggle__input:checked > .unity-toggle__checkmark {
+    background-image: resource('uipackageresources/images/d_in_foldout_on.png');
+}
