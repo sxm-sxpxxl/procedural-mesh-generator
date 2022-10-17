@@ -1,0 +1,28 @@
+﻿.root {
+    flex-direction: row;
+}
+
+.toggle {
+    margin-left: -8px;
+    margin-right: 0px;
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+
+.toggle > .unity-toggle__input {
+    padding-left: 2px;
+    padding-right: 2px;
+    border-radius: 2px;
+}
+
+.toggle > .unity-toggle__input:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.toggle > .unity-toggle__input > .unity-toggle__checkmark {
+    display: none;
+}
+
+.mesh-modifier {
+    flex-grow: 1;
+}

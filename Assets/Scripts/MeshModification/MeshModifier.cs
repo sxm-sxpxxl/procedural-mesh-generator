@@ -8,7 +8,8 @@ namespace Sxm.ProceduralMeshGenerator.Modification
         protected const int DebugVerticesResolution = 64;
         protected const float DebugDistanceBetweenVertices = 1f / DebugVerticesResolution;
     
-        [SerializeField] protected Transform meshTransform;
+        [SerializeField, HideInInspector] protected Transform meshTransform;
+        [SerializeField, HideInInspector] protected bool isActive = true;
     
         private Transform _axis;
         protected Transform Axis => _axis ? _axis : transform;

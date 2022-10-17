@@ -1,0 +1,44 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <ui:Template name="ReadOnlyScriptProperty" src="project://database/Assets/Scripts/Editor/CustomControls/ReadOnlyScriptField.uxml?fileID=9197481963319205126&amp;guid=c3df0b864f13be449a41bd3b0e899919&amp;type=3#ReadOnlyScriptField" />
+    <Style src="project://database/Assets/Scripts/Editor/ProceduralMeshGeneratorInspector.uss?fileID=7433441132597879392&amp;guid=e2da82a3a0ad09f4590ec58821bf21af&amp;type=3#ProceduralMeshGeneratorInspector" />
+    <ui:Instance template="ReadOnlyScriptProperty" name="ReadOnlyScriptField" />
+    <ui:Label text="Generation" display-tooltip-when-elided="true" name="generation" class="header-text" />
+    <uie:EnumField label="Mesh Type" value="Center" name="mesh-type" binding-path="meshType" />
+    <ui:VisualElement name="specific-mesh-type-options" style="align-items: stretch; margin-bottom: 8px; border-left-width: 1px; border-left-color: rgb(125, 125, 125); margin-left: 0;">
+        <ui:VisualElement name="plane-type">
+            <uie:EnumField label="Plane" value="Center" name="plane-axis" binding-path="plane" class="indent" />
+            <ui:Toggle label="Backface Culling" name="backface-culling" binding-path="isBackfaceCulling" class="indent" />
+            <ui:Toggle label="Forward Facing" name="forward-facing" binding-path="isForwardFacing" class="indent2x" />
+        </ui:VisualElement>
+        <ui:VisualElement name="cube-type">
+            <ui:Slider picking-mode="Ignore" label="Roughness" value="42" high-value="1" show-input-field="true" name="roughness" binding-path="roundness" class="indent" />
+        </ui:VisualElement>
+        <ui:VisualElement name="sphere-type" />
+    </ui:VisualElement>
+    <uie:Vector2Field label="Size" name="size-2d" binding-path="size2d" />
+    <uie:Vector3Field label="Size" name="size-3d" binding-path="size3d" />
+    <uie:Vector3Field label="Offset" name="offset" binding-path="offset" />
+    <ui:SliderInt picking-mode="Ignore" label="Resolution" value="42" high-value="32" name="resolution" low-value="1" show-input-field="true" binding-path="resolution" />
+    <ui:Label text="Modification" display-tooltip-when-elided="true" name="modification" class="header-text" />
+    <ui:ListView header-title="List View" show-border="true" binding-path="values" show-add-remove-footer="true" virtualization-method="DynamicHeight" selection-type="Single" reorderable="true" reorder-mode="Animated" show-bound-collection-size="false" name="modifiers" />
+    <ui:VisualElement name="selected-modifier-label" style="flex-direction: row; margin-top: 8px; margin-right: 6px;">
+        <ui:Label text="Selected modifier" display-tooltip-when-elided="true" style="margin-right: 16px; -unity-text-align: middle-left; -unity-font-style: bold;" />
+        <uie:ObjectField name="selected-modifier" style="flex-grow: 1;" />
+    </ui:VisualElement>
+    <ui:VisualElement name="selected-modifier-container" style="margin-left: 0; margin-right: 0; margin-top: 8px; margin-bottom: 8px; border-left-color: rgb(125, 125, 125); border-left-width: 1px; padding-left: 8px;" />
+    <Sxm.ProceduralMeshGenerator.FoldoutGroup Label="Debug Options" name="debug-options" style="margin-left: -16px; margin-right: -8px; margin-top: 8px; margin-bottom: 8px;">
+        <ui:VisualElement name="vertices-box" class="box">
+            <ui:Toggle label="Show Vertices" name="show-vertices" binding-path="areVerticesShowed" class="header-toggle" />
+            <uie:ColorField label="Color" value="RGBA(0.000, 1.000, 1.000, 1.000)" name="vertex-color" binding-path="vertexColor" style="flex-grow: 1;" />
+            <ui:Slider picking-mode="Ignore" label="Size" value="42" high-value="1" name="vertex-size" low-value="0.01" show-input-field="true" binding-path="vertexSize" style="flex-grow: 1;" />
+        </ui:VisualElement>
+        <ui:VisualElement name="labels-box" class="box">
+            <ui:Toggle label="Show Labels" name="show-labels" binding-path="isVertexLabelShowed" class="header-toggle" />
+            <ui:Toggle label="Show Duplicated Vertices" name="show-duplicated-vertices" binding-path="isDuplicatedVerticesShowed" style="flex-grow: 1;" />
+        </ui:VisualElement>
+        <ui:VisualElement name="normals-box" class="box" style="justify-content: space-around; align-items: auto; border-bottom-width: 0;">
+            <ui:Toggle label="Show Normals" name="show-normals" binding-path="isVertexNormalShowed" class="header-toggle" />
+            <ui:Slider picking-mode="Ignore" label="Size" value="42" high-value="1" name="normal-size" low-value="0.01" show-input-field="true" binding-path="normalSize" style="flex-grow: 1;" />
+        </ui:VisualElement>
+    </Sxm.ProceduralMeshGenerator.FoldoutGroup>
+</ui:UXML>

@@ -11,6 +11,7 @@ namespace Sxm.ProceduralMeshGenerator.Modification
         [SerializeField, Min(0f)] private float amplitude = 0.5f;
         [SerializeField, Min(0f)] private float frequency = 1f;
         [SerializeField, Min(0f)] private float falloff = 0f;
+        [Space]
         [SerializeField, Min(0f)] private float innerRadius = 0f;
         [SerializeField, Min(0f)] private float outerRadius = 1f;
         [SerializeField, Min(0f)] private float speed = 0f;
