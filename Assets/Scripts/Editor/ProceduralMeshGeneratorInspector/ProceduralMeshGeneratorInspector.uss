@@ -44,3 +44,7 @@
 .indent2x > .unity-label {
     padding-left: 16px;
 }
+
+.modifiers-controls > .unity-button:active {
+    -unity-font-style: bold;
+}

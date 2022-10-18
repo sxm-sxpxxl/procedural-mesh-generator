@@ -23,6 +23,8 @@ namespace Sxm.ProceduralMeshGenerator
         public DetailedListViewController(
             SerializedObject targetObject,
             VisualElement dragDropContainer,
+            Button clearButton,
+            Button cleanButton,
             ListView listView,
             ObjectField selectedItem,
             VisualElement itemDetailsContainer
@@ -36,6 +38,9 @@ namespace Sxm.ProceduralMeshGenerator
             dragDropContainer.RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
             dragDropContainer.RegisterCallback<DragPerformEvent>(OnDragPerformed);
             
+            clearButton.RegisterCallback<ClickEvent>(OnClearButtonClicked);
+            cleanButton.RegisterCallback<ClickEvent>(OnCleanButtonClicked);
+            
             _listView.selectionType = SelectionType.Single;
             _listView.onSelectionChange += OnSelectionItemChanged;
             _listView.itemIndexChanged += OnItemReordered;
@@ -45,7 +50,30 @@ namespace Sxm.ProceduralMeshGenerator
             _selectedItem.objectType = typeof(TItemType);
             _selectedItem.SetEnabled(false);
         }
-
+        
+        private void OnClearButtonClicked(ClickEvent evt)
+        {
+            ListProperty.ClearArray();
+            
+            _targetObject.ApplyModifiedProperties();
+            _listView.RefreshItems();
+        }
+        
+        private void OnCleanButtonClicked(ClickEvent evt)
+        {
+            for (int i = 0; i < ListProperty.arraySize;)
+            {
+                if (ListProperty.GetArrayElementAtIndex(i).objectReferenceValue == null)
+                {
+                    RemoveItemByIndex(i);
+                }
+                else
+                {
+                    i++;
+                }
+            }
+        }
+        
         private void OnDragUpdated(DragUpdatedEvent evt)
         {
             if (IsGameObjectWithComponentDragged(out MeshModifier _) == false)
