@@ -30,6 +30,11 @@ namespace Sxm.ProceduralMeshGenerator
         [SerializeField] private Vector3 offset = Vector3.zero;
         [SerializeField] private int resolution = 1;
 
-        [SerializeField] private List<MeshModifier> values;
+        [SerializeField] private List<MeshModifier> modifiers;
+
+        public void AddModifier(MeshModifier modifier)
+        {
+            modifiers.Add(modifier);
+        }
     }
 }
