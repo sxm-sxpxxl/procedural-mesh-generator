@@ -1,6 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
     <ui:Template name="ReadOnlyScriptProperty" src="project://database/Assets/Scripts/Editor/CustomControls/ReadOnlyScriptField.uxml?fileID=9197481963319205126&amp;guid=c3df0b864f13be449a41bd3b0e899919&amp;type=3#ReadOnlyScriptField" />
-    <Style src="project://database/Assets/Scripts/Editor/ProceduralMeshGeneratorInspector.uss?fileID=7433441132597879392&amp;guid=e2da82a3a0ad09f4590ec58821bf21af&amp;type=3#ProceduralMeshGeneratorInspector" />
+    <Style src="project://database/Assets/Scripts/Editor/ProceduralMeshGeneratorInspector/ProceduralMeshGeneratorInspector.uss?fileID=7433441132597879392&amp;guid=e2da82a3a0ad09f4590ec58821bf21af&amp;type=3#ProceduralMeshGeneratorInspector" />
     <ui:Instance template="ReadOnlyScriptProperty" name="ReadOnlyScriptField" />
     <ui:Label text="Generation" display-tooltip-when-elided="true" name="generation" class="header-text" />
     <uie:EnumField label="Mesh Type" value="Center" name="mesh-type" binding-path="meshType" />
@@ -20,6 +20,9 @@
     <uie:Vector3Field label="Offset" name="offset" binding-path="offset" />
     <ui:SliderInt picking-mode="Ignore" label="Resolution" value="42" high-value="32" name="resolution" low-value="1" show-input-field="true" binding-path="resolution" />
     <ui:Label text="Modification" display-tooltip-when-elided="true" name="modification" class="header-text" />
+    <ui:VisualElement name="drag-and-drop-container" style="height: 30px; background-color: rgba(72, 72, 72, 0.5); margin-bottom: 8px;">
+        <ui:Label text="+ Drag &amp; Drop Modifiers Here" display-tooltip-when-elided="true" style="-unity-text-align: middle-center; flex-grow: 1; color: rgba(210, 210, 210, 0.5);" />
+    </ui:VisualElement>
     <ui:ListView header-title="List View" show-border="true" binding-path="values" show-add-remove-footer="true" virtualization-method="DynamicHeight" selection-type="Single" reorderable="true" reorder-mode="Animated" show-bound-collection-size="false" name="modifiers" />
     <ui:VisualElement name="selected-modifier-label" style="flex-direction: row; margin-top: 8px; margin-right: 6px;">
         <ui:Label text="Selected modifier" display-tooltip-when-elided="true" style="margin-right: 16px; -unity-text-align: middle-left; -unity-font-style: bold;" />

@@ -36,6 +36,7 @@ namespace Sxm.ProceduralMeshGenerator
             
             _detailedListViewController = new DetailedListViewController<MeshModifier>(
                 serializedObject,
+                dragDropContainer: _root.Q<VisualElement>("drag-and-drop-container"),
                 listView: _root.Q<ListView>("modifiers"),
                 selectedItem: _root.Q<ObjectField>("selected-modifier"),
                 itemDetailsContainer: _root.Q<VisualElement>("selected-modifier-container")

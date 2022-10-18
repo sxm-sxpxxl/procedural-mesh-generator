@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEditor;
+using UnityEditor.UIElements;
+using Sxm.ProceduralMeshGenerator.Modification;
 
 namespace Sxm.ProceduralMeshGenerator
 {
@@ -16,11 +17,12 @@ namespace Sxm.ProceduralMeshGenerator
         private ListView _listView;
         private ObjectField _selectedItem;
         private VisualElement _itemDetailsContainer;
-
+        
         private SerializedProperty ListProperty => _targetObject.FindProperty(_listView.bindingPath);
         
         public DetailedListViewController(
             SerializedObject targetObject,
+            VisualElement dragDropContainer,
             ListView listView,
             ObjectField selectedItem,
             VisualElement itemDetailsContainer
@@ -31,16 +33,40 @@ namespace Sxm.ProceduralMeshGenerator
             _selectedItem = selectedItem;
             _itemDetailsContainer = itemDetailsContainer;
             
-            _selectedItem.objectType = typeof(TItemType);
-            _selectedItem.SetEnabled(false);
-
+            dragDropContainer.RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
+            dragDropContainer.RegisterCallback<DragPerformEvent>(OnDragPerformed);
+            
             _listView.selectionType = SelectionType.Single;
             _listView.onSelectionChange += OnSelectionItemChanged;
             _listView.itemIndexChanged += OnItemReordered;
             _listView.itemsRemoved += OnItemRemoved;
             _listView.RegisterCallback<KeyDownEvent>(OnRemoveKeyDown);
+            
+            _selectedItem.objectType = typeof(TItemType);
+            _selectedItem.SetEnabled(false);
         }
 
+        private void OnDragUpdated(DragUpdatedEvent evt)
+        {
+            if (IsGameObjectWithComponentDragged(out MeshModifier _) == false)
+            {
+                return;
+            }
+
+            DragAndDrop.visualMode = DragAndDropVisualMode.Generic;
+        }
+        
+        private void OnDragPerformed(DragPerformEvent evt)
+        {
+            if (IsGameObjectWithComponentDragged(out MeshModifier modifier) == false)
+            {
+                return;
+            }
+
+            AddItem(modifier);
+            SetLastSelectionItem();
+        }
+        
         private void OnSelectionItemChanged(IEnumerable<object> selectionItems)
         {
             var items = selectionItems.ToArray();
@@ -49,15 +75,96 @@ namespace Sxm.ProceduralMeshGenerator
                 return;
             }
                 
-            var itemProperty = items[0] as SerializedProperty;
-                
-            _selectedItem.BindProperty(itemProperty);
+            var selectionItemProperty = items[0] as SerializedProperty;
+            RebindSelectedItemWith(selectionItemProperty);
+        }
+        
+        private void OnItemReordered(int oldIndex, int newIndex)
+        {
+            _listView.selectedIndex = newIndex;
+            _listView.Rebuild();
+        }
+        
+        private void OnItemRemoved(IEnumerable<int> itemIndices)
+        {
+            if (ListProperty.arraySize == 0)
+            {
+                ResetSelectedItem();
+            }
+        }
+        
+        private void OnRemoveKeyDown(KeyDownEvent evt)
+        {
+            if (evt.keyCode != RemoveKey)
+            {
+                return;
+            }
+            
+            RemoveItemByIndex(_listView.selectedIndex);
+
+            if (ListProperty.arraySize == 0)
+            {
+                ResetSelectedItem();
+            }
+            
+            if (_listView.selectedIndex == ListProperty.arraySize)
+            {
+                SetLastSelectionItem();
+            }
+        }
+
+        private void AddItem(Object item)
+        {
+            var listProperty = ListProperty;
+            
+            listProperty.InsertArrayElementAtIndex(listProperty.arraySize);
+            int lastIndex = listProperty.arraySize - 1;
+            
+            var addedProperty = listProperty.GetArrayElementAtIndex(lastIndex);
+            addedProperty.objectReferenceValue = item;
+
+            _targetObject.ApplyModifiedProperties();
+            _listView.RefreshItems();
+        }
+        
+        private void RemoveItemByIndex(int index)
+        {
+            ListProperty.DeleteArrayElementAtIndex(index);
+            
+            _targetObject.ApplyModifiedProperties();
+            _listView.RefreshItems();
+        }
+        
+        private void SetLastSelectionItem()
+        {
+            int lastIndex = ListProperty.arraySize - 1;
+            SetSelectionItemByIndex(lastIndex);
+        }
+        
+        private void SetSelectionItemByIndex(int index)
+        {
+            if (index < 0 || index >= ListProperty.arraySize)
+            {
+                return;
+            }
+            
+            SerializedProperty selectionItemProperty = ListProperty.GetArrayElementAtIndex(index);
+            
+            _listView.SetSelectionWithoutNotify(new int[] { index });
+            RebindSelectedItemWith(selectionItemProperty);
+        }
+        
+        private void RebindSelectedItemWith(SerializedProperty property)
+        {
+            _selectedItem.Unbind();
+            _selectedItem.BindProperty(property);
+            
             _selectedItem.RegisterCallback<ChangeEvent<Object>>(evt =>
             {
-                UpdateItemDetails(evt.newValue!);
+                UpdateItemDetails(evt.newValue);
             });
-                
-            UpdateItemDetails(itemProperty!.objectReferenceValue);
+
+            UpdateItemDetails(property.objectReferenceValue);
         }
         
         private void UpdateItemDetails(Object item)
@@ -84,53 +191,18 @@ namespace Sxm.ProceduralMeshGenerator
                 _itemDetailsContainer.Add(propertyField);
             }
         }
-
-        private void OnItemReordered(int oldIndex, int newIndex)
+        
+        private void ResetSelectedItem()
         {
-            _listView.selectedIndex = newIndex;
-            _listView.Rebuild();
-        }
-
-
-        private void OnItemRemoved(IEnumerable<int> itemIndices)
-        {
-            if (ListProperty.arraySize != 0)
-            {
-                return;
-            }
-                
             _selectedItem.Unbind();
             _selectedItem.value = null;
         }
-
-        private void OnRemoveKeyDown(KeyDownEvent evt)
+        
+        private static bool IsGameObjectWithComponentDragged<TComponent>(out TComponent result) where TComponent : Component
         {
-            int selectedIndex = _listView.selectedIndex;
-            SerializedProperty listProperty = ListProperty;
-                
-            bool isRemoveKeyDown = evt.keyCode == RemoveKey;
-            bool isSelectedIndexCorrect = selectedIndex >= 0 && selectedIndex < listProperty.arraySize;
-                
-            if (isRemoveKeyDown == false || isSelectedIndexCorrect == false)
-            {
-                return;
-            }
-                
-            listProperty.DeleteArrayElementAtIndex(_listView.selectedIndex);
-                    
-            if (listProperty.arraySize == 0)
-            {
-                _selectedItem.Unbind();
-                _selectedItem.value = null;
-            }
-                    
-            if (_listView.selectedIndex == listProperty.arraySize)
-            {
-                _listView.selectedIndex -= 1;
-            }
-
-            _targetObject.ApplyModifiedProperties();
-            _listView.RefreshItems();
+            result = null;
+            var selectedGameObject = DragAndDrop.objectReferences[0] as GameObject;
+            return selectedGameObject != null && selectedGameObject.TryGetComponent(out result);
         }
     }
 }

@@ -123,7 +123,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!43 &244510369
+--- !u!43 &347329674
 Mesh:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -507,7 +507,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1032879957}
-  m_Mesh: {fileID: 244510369}
+  m_Mesh: {fileID: 347329674}
 --- !u!114 &1032879961
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -794,8 +794,8 @@ MonoBehaviour:
   meshTransform: {fileID: 0}
   isActive: 1
   amplitude: 0.5
-  frequency: 1
-  falloff: 0
+  frequency: 1.22
+  falloff: 1
   speed: 0
 --- !u!1 &2052083075
 GameObject:
