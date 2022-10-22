@@ -9,22 +9,10 @@ using UnityEditor;
 
 namespace Sxm.ProceduralMeshGenerator.Creation
 {
-    public enum MeshType
-    {
-        Plane,
-        Cube,
-        Sphere
-    }
-    
     public sealed class MeshCreatorContext
     {
-        private MeshCreator _meshCreator;
+        private IMeshCreator _meshCreator;
         
-        public MeshCreatorContext(MeshType type)
-        {
-            SetType(type);
-        }
-
         public void DrawDebug(
             Transform relativeTransform,
             float vertexSize = 0.01f,
@@ -35,7 +23,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             float normalsSize = 0.1f
         )
         {
-            var meshResponse = _meshCreator.LastMeshResponse;
+            var meshResponse = _meshCreator.GetMeshResponse();
             
             var vertices = meshResponse.vertices;
             var normals = meshResponse.normals;
@@ -108,20 +96,18 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 }
             }
         }
-
-        public MeshCreatorContext SetType(MeshType type)
+        
+        public Mesh CreateMesh(in BaseMeshRequest request)
         {
-            _meshCreator = type switch
+            _meshCreator = request switch
             {
-                MeshType.Plane => new PlaneMeshCreator(),
-                MeshType.Cube => new CubeMeshCreator(),
-                MeshType.Sphere => new SphereMeshCreator(),
-                _ => throw new ArgumentOutOfRangeException(nameof(type), type, "MeshType was undefined!")
+                PlaneMeshRequest => new PlaneMeshCreator(request as PlaneMeshRequest),
+                CubeMeshRequest => new CubeMeshCreator(request as CubeMeshRequest),
+                SphereMeshRequest => new SphereMeshCreator(request as SphereMeshRequest),
+                _ => throw new ArgumentOutOfRangeException(nameof(request), "Not expected request value!")
             };
-            
-            return this;
-        }
 
-        public Mesh CreateMesh(in MeshRequest request) => _meshCreator.CreateMesh(request);
+            return _meshCreator.CreateMesh();
+        }
     }
 }

@@ -3,11 +3,12 @@ using UnityEngine;
 
 namespace Sxm.ProceduralMeshGenerator.Creation
 {
-    internal abstract class MeshCreator
+    internal abstract class BaseMeshCreator<TRequest> : IMeshCreator
+        where TRequest : BaseMeshRequest
     {
-        protected MeshRequest meshRequest;
+        private TRequest _baseRequest;
         
-        public MeshResponse LastMeshResponse { get; protected set; }
+        protected MeshResponse response;
         
         protected enum RotationDirection
         {
@@ -38,30 +39,34 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 this.vertexGroupOffset = vertexGroupOffset;
             }
         }
-        
-        public Mesh CreateMesh(in MeshRequest request) => GetResponseTo(request).MeshInstance;
-        
-        public MeshResponse GetResponseTo(in MeshRequest request)
+
+        public BaseMeshCreator(in TRequest request)
         {
-            meshRequest = request;
-            return request.postProcessCallback?.Invoke(HandleRequest()) ?? HandleRequest();
+            _baseRequest = request;
         }
         
-        protected abstract MeshResponse HandleRequest();
+        public MeshResponse CreateResponse() =>
+            _baseRequest.postProcessCallback?.Invoke(Handle(_baseRequest)) ?? Handle(_baseRequest);
+        
+        Mesh IMeshCreator.CreateMesh() => CreateResponse().MeshInstance;
+        
+        MeshResponse IMeshCreator.GetMeshResponse() => response;
+        
+        protected abstract MeshResponse Handle(TRequest request);
 
         protected void ScaleAndOffset()
         {
-            if (meshRequest.isScalingAndOffsetting == false)
+            if (_baseRequest.isScalingAndOffsetting == false)
             {
                 return;
             }
             
-            var vertices = LastMeshResponse.vertices;
-            var initialPoint = -0.5f * meshRequest.size + meshRequest.offset;
+            var vertices = response.vertices;
+            var initialPoint = -0.5f * _baseRequest.size + _baseRequest.offset;
             
             for (int i = 0; i < vertices.Length; i++)
             {
-                vertices[i] = initialPoint + Vector3.Scale(vertices[i], meshRequest.size);
+                vertices[i] = initialPoint + Vector3.Scale(vertices[i], _baseRequest.size);
             }
         }
         
@@ -75,7 +80,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
         {
             const int excludedGroup = -1;
             
-            int groupsCountWithBackface = (meshRequest.isBackfaceCulling ? 1 : 2) * vertexGroupsCount;
+            int groupsCountWithBackface = (_baseRequest.isBackfaceCulling ? 1 : 2) * vertexGroupsCount;
             int allGroupsCount = vertexGroupsCount + excludedVertexGroupsCount;
             int allGroupsCountWithBackface = groupsCountWithBackface + excludedVertexGroupsCount;
             int currentAllGroupsSize = 0;
@@ -90,7 +95,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                     currentExcludedGroupsCount++;
                     excludedVertexGroupsMap[i] = excludedGroup;
                     
-                    if (meshRequest.isBackfaceCulling == false)
+                    if (_baseRequest.isBackfaceCulling == false)
                     {
                         excludedVertexGroupsMap[i + vertexGroupsCount] = excludedGroup;
                     }
@@ -109,7 +114,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 );
                 excludedVertexGroupsMap[i] = i - currentExcludedGroupsCount;
                 
-                if (meshRequest.isBackfaceCulling == false)
+                if (_baseRequest.isBackfaceCulling == false)
                 {
                     vertexGroups[vIndex + vertexGroupsCount] = new VertexGroup(
                         selfIndex: vIndex + vertexGroupsCount,
@@ -124,19 +129,19 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 currentAllGroupsSize += vertexGroupSize - 1;
             }
 
-            LastMeshResponse = new MeshResponse(
-                meshRequest.name,
+            response = new MeshResponse(
+                _baseRequest.name,
                 verticesCount: allGroupsCountWithBackface + currentAllGroupsSize - excludedVertexGroupsCount,
                 vertexGroups,
                 excludedVertexGroupsMap,
-                meshRequest.isBackfaceCulling
+                _baseRequest.isBackfaceCulling
             );
         }
         
         protected void SetTriangles(in FaceData[] faces, int baseEdgeVertexGroupOffset = 0)
         {
-            bool isBackfaceCulling = meshRequest.isBackfaceCulling, isForwardFacing = meshRequest.isForwardFacing;
-            int oneFaceIndicesCount = GetFaceIndicesCountBy(meshRequest.resolution);
+            bool isBackfaceCulling = _baseRequest.isBackfaceCulling, isForwardFacing = _baseRequest.isForwardFacing;
+            int oneFaceIndicesCount = GetFaceIndicesCountBy(_baseRequest.resolution);
             int allFacesIndicesCount = (isBackfaceCulling ? 1 : 2) * faces.Length * oneFaceIndicesCount;
             var indices = new int[allFacesIndicesCount];
             
@@ -150,7 +155,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 SetFace(
                     indices,
                     startIndex: i * oneFaceIndicesCount,
-                    LastMeshResponse,
+                    response,
                     actualTraversalOrder,
                     face.getActualVertexGroupIndex,
                     face.getFaceNormal,
@@ -164,9 +169,9 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                     SetFace(
                         indices,
                         startIndex: (i + 1) * oneFaceIndicesCount,
-                        LastMeshResponse,
+                        response,
                         (RotationDirection) (1 - (int) actualTraversalOrder),
-                        index => face.getActualVertexGroupIndex(index) + LastMeshResponse.vertexGroups.Length / 2,
+                        index => face.getActualVertexGroupIndex(index) + response.vertexGroups.Length / 2,
                         () => -face.getFaceNormal(),
                         face.getUV,
                         face.vertexGroupOffset,
@@ -175,7 +180,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 }
             }
 
-            LastMeshResponse.SetTriangles(indices);
+            response.SetTriangles(indices);
         }
 
         private void SetFace(
@@ -190,7 +195,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             int baseEdgeVertexGroupOffset
         )
         {
-            int resolution = meshRequest.resolution;
+            int resolution = _baseRequest.resolution;
             int faceIndicesCount = GetFaceIndicesCountBy(resolution);
             int[] excludedVertexGroupsMap = meshResponse.excludedVertexGroupsMap;
             VertexGroup[] vertexGroups = meshResponse.vertexGroups;

@@ -3,11 +3,13 @@ using UnityEngine;
 
 namespace Sxm.ProceduralMeshGenerator.Creation
 {
-    internal sealed class CubeMeshCreator : MeshCreator
+    internal sealed class CubeMeshCreator : BaseMeshCreator<CubeMeshRequest>
     {
-        protected override MeshResponse HandleRequest()
+        public CubeMeshCreator(in CubeMeshRequest request) : base(in request) { }
+        
+        protected override MeshResponse Handle(CubeMeshRequest request)
         {
-            int resolution = meshRequest.resolution;
+            int resolution = request.resolution;
             float distanceBetweenVertices = 1f / resolution;
 
             int edgeVerticesCount = resolution + 1;
@@ -142,22 +144,21 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 )
             }, baseEdgeVertexGroupOffset: (int) Plane.XY);
             
-            RoundCube();
+            RoundCube(request.roundness);
             ScaleAndOffset();
             
-            return LastMeshResponse;
+            return response;
         }
 
-        private void RoundCube()
+        private void RoundCube(float roundness)
         {
-            float roundness = (float) meshRequest.customData;
             if (roundness <= 0)
             {
                 return;
             }
             
-            var vertices = LastMeshResponse.vertices;
-            var normals = LastMeshResponse.normals;
+            var vertices = response.vertices;
+            var normals = response.normals;
             
             for (int i = 0; i < vertices.Length; i++)
             {
