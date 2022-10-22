@@ -15,7 +15,7 @@ namespace Sxm.ProceduralMeshGenerator
         [SerializeField] private VisualTreeAsset template;
         
         private VisualElement _root;
-        private DetailedListViewController<MeshModifier> _detailedListViewController;
+        private DetailedListViewController<BaseMeshModifier> _detailedListViewController;
 
         private static readonly (string, MeshType)[] AvailableMeshTypes = new (string, MeshType)[]
         {
@@ -34,7 +34,7 @@ namespace Sxm.ProceduralMeshGenerator
             _root.RegisterAndSetField<Toggle, bool>("show-normals", serializedObject, OnDebugOptionToggleChanged);
             _root.RegisterAndSetField<EnumField, Enum>("mesh-type", serializedObject, OnMeshTypeChanged);
             
-            _detailedListViewController = new DetailedListViewController<MeshModifier>(
+            _detailedListViewController = new DetailedListViewController<BaseMeshModifier>(
                 serializedObject,
                 dragDropContainer: _root.Q<VisualElement>("drag-and-drop-container"),
                 clearButton: _root.Q<Button>("clear-button"),

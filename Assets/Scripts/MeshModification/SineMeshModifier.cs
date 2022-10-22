@@ -6,7 +6,7 @@ using Unity.Mathematics;
 
 namespace Sxm.ProceduralMeshGenerator.Modification
 {
-    public sealed class SineMeshModifier : MeshModifier
+    public sealed class SineMeshModifier : BaseMeshModifier
     {
         [SerializeField, Min(0f)] private float amplitude = 0.5f;
         [SerializeField, Min(0f)] private float frequency = 1f;
@@ -33,8 +33,9 @@ namespace Sxm.ProceduralMeshGenerator.Modification
             GizmosUtils.DrawCurve(points, transform, Color.red);
         }
 
-        public override Vector3[] Modify(in Vector3[] vertices)
+        public override Vector3[] Modify(in Transform target, in Vector3[] vertices)
         {
+            meshTransform = target;
             (float4x4 meshToAxis, float4x4 axisToMesh) = MathUtils.GetFromToTransform(meshTransform, Axis);
             var nativeVertices = NativeUtils.GetNativeArrayFrom(vertices, Allocator.TempJob);
             

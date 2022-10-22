@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 
 namespace Sxm.ProceduralMeshGenerator
 {
-    [CustomPropertyDrawer(typeof(MeshModifier))]
+    [CustomPropertyDrawer(typeof(BaseMeshModifier))]
     public sealed class MeshModifierPropertyDrawer : PropertyDrawer
     {
         private static readonly string VisibleIconName = "animationvisibilitytoggleon";
@@ -33,7 +33,7 @@ namespace Sxm.ProceduralMeshGenerator
             var meshModifierField = new ObjectField
             {
                 name = "mesh-modifier",
-                objectType = typeof(MeshModifier),
+                objectType = typeof(BaseMeshModifier),
                 bindingPath = property.propertyPath
             };
             meshModifierField.RegisterCallback<ChangeEvent<Object>>(OnModifierChanged);

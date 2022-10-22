@@ -51,11 +51,11 @@ namespace Sxm.ProceduralMeshGenerator
         private int resolution = 1;
         
         [Header("Modification")]
-        [SerializeField] private MeshModifier meshModifier;
+        [SerializeField] private BaseMeshModifier baseMeshModifier;
 
         [NonSerialized] private MeshFilter _meshFilter;
 
-        private readonly MeshCreatorContext _context = new MeshCreatorContext(MeshType.Plane);
+        // private readonly MeshCreatorContext _context = new MeshCreatorContext();
 
         private MeshFilter MeshFilter => _meshFilter ? _meshFilter : GetComponent<MeshFilter>();
         
@@ -79,15 +79,15 @@ namespace Sxm.ProceduralMeshGenerator
                 return;
             }
             
-            _context.DrawDebug(
-                transform,
-                vertexSize,
-                vertexColor,
-                isVertexLabelShowed,
-                isDuplicatedVerticesShowed,
-                isVertexNormalShowed,
-                normalsSize
-            );
+            // _context.DrawDebug(
+            //     transform,
+            //     vertexSize,
+            //     vertexColor,
+            //     isVertexLabelShowed,
+            //     isDuplicatedVerticesShowed,
+            //     isVertexNormalShowed,
+            //     normalsSize
+            // );
         }
         
         private void Awake()
@@ -97,74 +97,74 @@ namespace Sxm.ProceduralMeshGenerator
 
         private void OnRenderObject()
         {
-            GenerateMesh();
-            ModifyMesh();
+            // GenerateMesh();
+            // ModifyMesh();
         }
 
-        private void ModifyMesh()
-        {
-            MeshFilter.sharedMesh.vertices = meshModifier.Modify(MeshFilter.sharedMesh.vertices);
-            MeshFilter.sharedMesh.RecalculateBounds();
-            MeshFilter.sharedMesh.RecalculateNormals();
-        }
+        // private void ModifyMesh()
+        // {
+        //     MeshFilter.sharedMesh.vertices = baseMeshModifier.Modify(MeshFilter.sharedMesh.vertices);
+        //     MeshFilter.sharedMesh.RecalculateBounds();
+        //     MeshFilter.sharedMesh.RecalculateNormals();
+        // }
 
-        private void GenerateMesh()
-        {
-            if (meshType == MeshType.Plane) CreatePlane();
-            if (meshType == MeshType.Cube) CreateCube();
-            if (meshType == MeshType.Sphere) CreateSphere();
-        }
-
-        private void CreateSphere()
-        {
-            MeshFilter.sharedMesh = _context.SetType(MeshType.Sphere).CreateMesh(new MeshRequest(
-                _meshTypeNames[MeshType.Sphere],
-                resolution,
-                size,
-                offset
-            ));
-
-            isBackfaceCulling = true;
-        }
-
-        private void CreateCube()
-        {
-            MeshFilter.sharedMesh = _context.SetType(MeshType.Cube).CreateMesh(new MeshRequest(
-                _meshTypeNames[MeshType.Cube],
-                resolution,
-                size,
-                offset,
-                customData: (object) roundness
-            ));
-            
-            isBackfaceCulling = true;
-        }
-
-        private void CreatePlane()
-        {
-            var virtualPlane = Plane.XY;
-            MeshFilter.sharedMesh = _context.SetType(MeshType.Plane).CreateMesh(new MeshRequest(
-                _meshTypeNames[MeshType.Plane],
-                resolution,
-                planeSize.AsFor(virtualPlane),
-                offset,
-                isScalingAndOffsetting: true,
-                isForwardFacing,
-                isBackfaceCulling,
-                meshResponse =>
-                {
-                    var vertices = meshResponse.vertices;
-                    var normals = meshResponse.normals;
-                    
-                    for (int i = 0; i < vertices.Length; i++)
-                    {
-                        vertices[i] = (vertices[i] - offset).AsFor(plane, virtualPlane) + offset;
-                        normals[i] = normals[i].AsFor(plane, virtualPlane);
-                    }
-                    
-                    return meshResponse;
-                }
-            ));
-        }
+        // private void GenerateMesh()
+        // {
+        //     if (meshType == MeshType.Plane) CreatePlane();
+        //     if (meshType == MeshType.Cube) CreateCube();
+        //     if (meshType == MeshType.Sphere) CreateSphere();
+        // }
+        //
+        // private void CreateSphere()
+        // {
+        //     MeshFilter.sharedMesh = _context.SetType(MeshType.Sphere).CreateMesh(new BaseMeshRequest(
+        //         _meshTypeNames[MeshType.Sphere],
+        //         resolution,
+        //         size,
+        //         offset
+        //     ));
+        //
+        //     isBackfaceCulling = true;
+        // }
+        //
+        // private void CreateCube()
+        // {
+        //     MeshFilter.sharedMesh = _context.SetType(MeshType.Cube).CreateMesh(new BaseMeshRequest(
+        //         _meshTypeNames[MeshType.Cube],
+        //         resolution,
+        //         size,
+        //         offset,
+        //         customData: (object) roundness
+        //     ));
+        //     
+        //     isBackfaceCulling = true;
+        // }
+        //
+        // private void CreatePlane()
+        // {
+        //     var virtualPlane = Plane.XY;
+        //     MeshFilter.sharedMesh = _context.SetType(MeshType.Plane).CreateMesh(new BaseMeshRequest(
+        //         _meshTypeNames[MeshType.Plane],
+        //         resolution,
+        //         planeSize.AsFor(virtualPlane),
+        //         offset,
+        //         isScalingAndOffsetting: true,
+        //         isForwardFacing,
+        //         isBackfaceCulling,
+        //         meshResponse =>
+        //         {
+        //             var vertices = meshResponse.vertices;
+        //             var normals = meshResponse.normals;
+        //             
+        //             for (int i = 0; i < vertices.Length; i++)
+        //             {
+        //                 vertices[i] = (vertices[i] - offset).AsFor(plane, virtualPlane) + offset;
+        //                 normals[i] = normals[i].AsFor(plane, virtualPlane);
+        //             }
+        //             
+        //             return meshResponse;
+        //         }
+        //     ));
+        // }
     }
 }

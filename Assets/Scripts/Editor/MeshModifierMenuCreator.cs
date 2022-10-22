@@ -30,7 +30,7 @@ namespace Sxm.ProceduralMeshGenerator
             return IsGameObjectWithComponentSelected<ProceduralMeshGenerator>();
         }
 
-        private static void AddModifier<TModifier>(string name) where TModifier : MeshModifier
+        private static void AddModifier<TModifier>(string name) where TModifier : BaseMeshModifier
         {
             var child = new GameObject(name);
             TModifier childModifier = child.AddComponent<TModifier>();

@@ -76,7 +76,7 @@ namespace Sxm.ProceduralMeshGenerator
         
         private void OnDragUpdated(DragUpdatedEvent evt)
         {
-            if (IsGameObjectWithComponentDragged(out MeshModifier _) == false)
+            if (IsGameObjectWithComponentDragged(out BaseMeshModifier _) == false)
             {
                 return;
             }
@@ -86,7 +86,7 @@ namespace Sxm.ProceduralMeshGenerator
         
         private void OnDragPerformed(DragPerformEvent evt)
         {
-            if (IsGameObjectWithComponentDragged(out MeshModifier modifier) == false)
+            if (IsGameObjectWithComponentDragged(out BaseMeshModifier modifier) == false)
             {
                 return;
             }
