@@ -135,7 +135,7 @@ namespace Sxm.ProceduralMeshGenerator
                     continue;
                 }
                 
-                vertices = appliedModifiers[i].target.Modify(transform, vertices);
+                vertices = appliedModifiers[i].target.Modify(vertices);
             }
             
             meshFilter.sharedMesh.vertices = vertices;

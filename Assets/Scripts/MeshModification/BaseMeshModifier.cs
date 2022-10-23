@@ -21,7 +21,12 @@ namespace Sxm.ProceduralMeshGenerator.Modification
         
         protected abstract void OnDrawGizmosSelected();
         
-        // todo #3: change reference pass to mesh transform
-        public abstract Vector3[] Modify(in Transform target, in Vector3[] vertices);
+        public BaseMeshModifier Init(Transform meshTransform)
+        {
+            this.meshTransform = meshTransform;
+            return this;
+        }
+        
+        public abstract Vector3[] Modify(in Vector3[] vertices);
     }
 }

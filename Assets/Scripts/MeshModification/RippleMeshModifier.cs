@@ -55,9 +55,8 @@ namespace Sxm.ProceduralMeshGenerator.Modification
             GizmosUtils.DrawCircle(DebugVerticesResolution, outerRadius, outerHeight, transform, Color.red);
         }
 
-        public override Vector3[] Modify(in Transform target, in Vector3[] vertices)
+        public override Vector3[] Modify(in Vector3[] vertices)
         {
-            meshTransform = target;
             (float4x4 meshToAxis, float4x4 axisToMesh) = MathUtils.GetFromToTransform(meshTransform, Axis);
             var nativeVertices = NativeUtils.GetNativeArrayFrom(vertices, Allocator.TempJob);
             
