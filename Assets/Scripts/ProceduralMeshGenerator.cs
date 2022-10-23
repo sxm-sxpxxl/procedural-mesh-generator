@@ -20,7 +20,7 @@ namespace Sxm.ProceduralMeshGenerator
         [SerializeField] private float normalSize = 1f;
 
         [SerializeField] private MeshType meshType = MeshType.Plane;
-        [SerializeField] private Plane plane = Plane.XZ;
+        [SerializeField] private Plane planeAxis = Plane.XZ;
         [SerializeField] private bool isBackfaceCulling = true;
         [SerializeField] private bool isForwardFacing = true;
         [SerializeField] private float roundness = 0f;
@@ -86,10 +86,11 @@ namespace Sxm.ProceduralMeshGenerator
                     MeshTypeNames[meshType],
                     resolution,
                     size2d,
-                    plane,
+                    planeAxis,
                     offset,
-                    isForwardFacing,
-                    isBackfaceCulling
+                    isScalingAndOffsetting: true,
+                    isBackfaceCulling,
+                    isForwardFacing
                 ),
                 MeshType.Cube => new CubeMeshRequest(
                     MeshTypeNames[meshType],

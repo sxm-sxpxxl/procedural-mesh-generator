@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace Sxm.ProceduralMeshGenerator.Creation
 {
-    // todo #1: fix incorrect creating of the plane when isForwardFacing changing
     public sealed class PlaneMeshRequest : BaseMeshRequest
     {
         internal static readonly Plane VirtualAxis = Plane.XY;

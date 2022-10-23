@@ -6,7 +6,7 @@
     <uie:EnumField label="Mesh Type" value="Center" name="mesh-type" binding-path="meshType" />
     <ui:VisualElement name="specific-mesh-type-options" style="align-items: stretch; margin-bottom: 8px; border-left-width: 1px; border-left-color: rgb(125, 125, 125); margin-left: 0;">
         <ui:VisualElement name="plane-type">
-            <uie:EnumField label="Plane" value="Center" name="plane-axis" binding-path="plane" class="indent" />
+            <uie:EnumField label="Axis" value="Center" name="plane-axis" binding-path="planeAxis" class="indent" />
             <ui:Toggle label="Backface Culling" name="backface-culling" binding-path="isBackfaceCulling" class="indent" />
             <ui:Toggle label="Forward Facing" name="forward-facing" binding-path="isForwardFacing" class="indent2x" />
         </ui:VisualElement>

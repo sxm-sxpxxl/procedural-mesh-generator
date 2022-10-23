@@ -33,6 +33,7 @@ namespace Sxm.ProceduralMeshGenerator
             _root.RegisterAndSetField<Toggle, bool>("show-labels", serializedObject, OnDebugOptionToggleChanged);
             _root.RegisterAndSetField<Toggle, bool>("show-normals", serializedObject, OnDebugOptionToggleChanged);
             _root.RegisterAndSetField<EnumField, Enum>("mesh-type", serializedObject, OnMeshTypeChanged);
+            _root.RegisterAndSetField<Toggle, bool>("backface-culling", serializedObject, OnBackfaceCullingChanged);
             
             _detailedListViewController = new DetailedListViewController<BaseMeshModifier>(
                 serializedObject,
@@ -45,6 +46,11 @@ namespace Sxm.ProceduralMeshGenerator
             );
             
             return _root;
+        }
+
+        private static void OnBackfaceCullingChanged(Toggle backfaceCullingToggle, bool newValue)
+        {
+            backfaceCullingToggle.parent.Q<Toggle>("forward-facing").SetDisplay(newValue);
         }
         
         private static void OnMeshTypeChanged(EnumField meshTypeField, Enum newValue)
@@ -62,10 +68,10 @@ namespace Sxm.ProceduralMeshGenerator
             root.Q<VisualElement>("size-3d").SetDisplay(meshType != MeshType.Plane);
         }
         
-        private static void OnDebugOptionToggleChanged(Toggle toggle, bool newValue)
+        private static void OnDebugOptionToggleChanged(Toggle debugOptionToggle, bool newValue)
         {
-            toggle.parent.Children()
-                .Where(x => x.name != toggle.name)
+            debugOptionToggle.parent.Children()
+                .Where(x => x.name != debugOptionToggle.name)
                 .ForEach(x => x.SetDisplay(newValue));
         }
     }
