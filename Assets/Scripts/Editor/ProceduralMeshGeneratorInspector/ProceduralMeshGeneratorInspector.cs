@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEditor.UIElements;
 using Sxm.ProceduralMeshGenerator.Creation;
 using Sxm.ProceduralMeshGenerator.Modification;
+using Object = UnityEngine.Object;
 
 namespace Sxm.ProceduralMeshGenerator
 {
@@ -41,13 +42,27 @@ namespace Sxm.ProceduralMeshGenerator
                 clearButton: _root.Q<Button>("clear-button"),
                 cleanButton: _root.Q<Button>("clean-button"),
                 listView: _root.Q<ListView>("modifiers"),
-                selectedItem: _root.Q<ObjectField>("selected-modifier"),
-                itemDetailsContainer: _root.Q<VisualElement>("selected-modifier-container")
+                selectedTargetField: _root.Q<ObjectField>("selected-modifier"),
+                targetDetailsContainer: _root.Q<VisualElement>("selected-modifier-container"),
+                getTargetProperty: GetTargetPropertyForMeshModifier,
+                setTargetForItemProperty: SetMeshModifierProperty
             );
             
             return _root;
         }
 
+        private static void SetMeshModifierProperty(SerializedProperty meshModifierProperty, Object meshModifier)
+        {
+            GetActivePropertyForMeshModifier(meshModifierProperty).boolValue = true;
+            GetTargetPropertyForMeshModifier(meshModifierProperty).objectReferenceValue = meshModifier;
+        }
+        
+        private static SerializedProperty GetActivePropertyForMeshModifier(SerializedProperty meshModifierProperty) =>
+            meshModifierProperty.FindPropertyRelative("isActive");
+        
+        private static SerializedProperty GetTargetPropertyForMeshModifier(SerializedProperty meshModifierProperty) =>
+            meshModifierProperty.FindPropertyRelative("target");
+        
         private static void OnBackfaceCullingChanged(Toggle backfaceCullingToggle, bool newValue)
         {
             backfaceCullingToggle.parent.Q<Toggle>("forward-facing").SetDisplay(newValue);
