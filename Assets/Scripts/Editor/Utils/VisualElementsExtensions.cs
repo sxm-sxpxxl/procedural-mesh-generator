@@ -16,21 +16,32 @@ namespace Sxm.ProceduralMeshGenerator
         }
         
         public static void RegisterAndSetField<TFieldType, TValueType>(
-            this VisualElement root,
-            string fieldName,
-            SerializedObject serializedObject,
+            this TFieldType field,
+            SerializedProperty targetProperty,
             Action<TFieldType, TValueType> fieldChangeCallback
         ) where TFieldType : BaseField<TValueType>
         {
-            TFieldType field = root.Q<TFieldType>(fieldName);
             field.RegisterCallback<ChangeEvent<TValueType>>(evt =>
             {
                 fieldChangeCallback.Invoke(evt.currentTarget as TFieldType, evt.newValue);
             });
-            
-            var initValue = GetBindedPropertyFor(serializedObject, field).GetValue<TValueType>();
+
+            var initValue = targetProperty.GetValue<TValueType>();
             field.SetValueWithoutNotify(initValue);
             fieldChangeCallback.Invoke(field, initValue);
+        }
+        
+        public static void RegisterAndSetField<TFieldType, TValueType>(
+            this VisualElement root,
+            string fieldName,
+            SerializedObject parentSerializedObject,
+            Action<TFieldType, TValueType> fieldChangeCallback
+        ) where TFieldType : BaseField<TValueType>
+        {
+            TFieldType field = root.Q<TFieldType>(fieldName);
+            SerializedProperty childProperty = GetBindedPropertyFor(parentSerializedObject, field);
+            
+            RegisterAndSetField(field, childProperty, fieldChangeCallback);
         }
         
         private static SerializedProperty GetBindedPropertyFor(

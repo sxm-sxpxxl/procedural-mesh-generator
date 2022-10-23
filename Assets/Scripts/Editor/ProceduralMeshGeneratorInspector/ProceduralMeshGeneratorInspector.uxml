@@ -27,7 +27,7 @@
         <ui:Button text="Clean" display-tooltip-when-elided="true" name="clean-button" focusable="false" style="background-color: rgba(0, 255, 0, 0.5); width: 50px;" />
         <ui:Button text="Clear" display-tooltip-when-elided="true" name="clear-button" focusable="false" style="background-color: rgba(255, 0, 0, 0.5); width: 50px;" />
     </ui:VisualElement>
-    <ui:ListView header-title="Modifiers" show-border="true" binding-path="modifiers" show-add-remove-footer="true" virtualization-method="DynamicHeight" selection-type="Single" reorderable="true" reorder-mode="Animated" show-bound-collection-size="false" name="modifiers" show-foldout-header="true" />
+    <ui:ListView header-title="Modifiers" show-border="true" binding-path="appliedModifiers" show-add-remove-footer="true" virtualization-method="DynamicHeight" selection-type="Single" reorderable="true" reorder-mode="Animated" show-bound-collection-size="false" name="modifiers" show-foldout-header="true" />
     <ui:VisualElement name="selected-modifier-label" style="flex-direction: row; margin-top: 8px; margin-right: 6px;">
         <ui:Label text="Selected modifier" display-tooltip-when-elided="true" style="margin-right: 16px; -unity-text-align: middle-left; -unity-font-style: bold;" />
         <uie:ObjectField name="selected-modifier" style="flex-grow: 1;" />

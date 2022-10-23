@@ -44,6 +44,7 @@ namespace Sxm.ProceduralMeshGenerator
             _listView.selectionType = SelectionType.Single;
             _listView.onSelectionChange += OnSelectionItemChanged;
             _listView.itemIndexChanged += OnItemReordered;
+            _listView.itemsAdded += OnItemAdded;
             _listView.itemsRemoved += OnItemRemoved;
             _listView.RegisterCallback<KeyDownEvent>(OnRemoveKeyDown);
             
@@ -63,7 +64,7 @@ namespace Sxm.ProceduralMeshGenerator
         {
             for (int i = 0; i < ListProperty.arraySize;)
             {
-                if (ListProperty.GetArrayElementAtIndex(i).objectReferenceValue == null)
+                if (GetTargetPropertyBy(ListProperty.GetArrayElementAtIndex(i)).objectReferenceValue == null)
                 {
                     RemoveItemByIndex(i);
                 }
@@ -90,7 +91,7 @@ namespace Sxm.ProceduralMeshGenerator
             {
                 return;
             }
-
+            
             AddItem(modifier);
             SetLastSelectionItem();
         }
@@ -111,6 +112,14 @@ namespace Sxm.ProceduralMeshGenerator
         {
             _listView.selectedIndex = newIndex;
             _listView.Rebuild();
+        }
+
+        private void OnItemAdded(IEnumerable<int> itemIndices)
+        {
+            foreach (var itemIndex in itemIndices)
+            {
+                SetItemDataByIndex(itemIndex, true, null);
+            }
         }
         
         private void OnItemRemoved(IEnumerable<int> itemIndices)
@@ -147,12 +156,19 @@ namespace Sxm.ProceduralMeshGenerator
             
             listProperty.InsertArrayElementAtIndex(listProperty.arraySize);
             int lastIndex = listProperty.arraySize - 1;
-            
-            var addedProperty = listProperty.GetArrayElementAtIndex(lastIndex);
-            addedProperty.objectReferenceValue = item;
 
-            _targetObject.ApplyModifiedProperties();
+            SetItemDataByIndex(lastIndex, true, item);
             _listView.RefreshItems();
+        }
+
+        private void SetItemDataByIndex(int index, bool isActive, Object target)
+        {
+            var changedListItem = ListProperty.GetArrayElementAtIndex(index);
+            
+            GetActivePropertyBy(changedListItem).boolValue = isActive;
+            GetTargetPropertyBy(changedListItem).objectReferenceValue = target;
+            
+            _targetObject.ApplyModifiedProperties();
         }
         
         private void RemoveItemByIndex(int index)
@@ -182,17 +198,19 @@ namespace Sxm.ProceduralMeshGenerator
             RebindSelectedItemWith(selectionItemProperty);
         }
         
-        private void RebindSelectedItemWith(SerializedProperty property)
+        private void RebindSelectedItemWith(SerializedProperty listItemProperty)
         {
+            var targetProperty = GetTargetPropertyBy(listItemProperty);
+            
             _selectedItem.Unbind();
-            _selectedItem.BindProperty(property);
+            _selectedItem.BindProperty(targetProperty);
             
             _selectedItem.RegisterCallback<ChangeEvent<Object>>(evt =>
             {
                 UpdateItemDetails(evt.newValue);
             });
-
-            UpdateItemDetails(property.objectReferenceValue);
+            
+            UpdateItemDetails(targetProperty.objectReferenceValue);
         }
         
         private void UpdateItemDetails(Object item)
@@ -225,6 +243,12 @@ namespace Sxm.ProceduralMeshGenerator
             _selectedItem.Unbind();
             _selectedItem.value = null;
         }
+
+        private static SerializedProperty GetActivePropertyBy(SerializedProperty listItemProperty) =>
+            listItemProperty.FindPropertyRelative("isActive");
+        
+        private static SerializedProperty GetTargetPropertyBy(SerializedProperty listItemProperty) =>
+            listItemProperty.FindPropertyRelative("target");
         
         private static bool IsGameObjectWithComponentDragged<TComponent>(out TComponent result) where TComponent : Component
         {

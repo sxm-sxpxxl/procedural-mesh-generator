@@ -6,6 +6,18 @@ using Sxm.ProceduralMeshGenerator.Modification;
 
 namespace Sxm.ProceduralMeshGenerator
 {
+    [Serializable]
+    public sealed class AppliedMeshModifier
+    {
+        public bool isActive = true;
+        public BaseMeshModifier target = null;
+
+        public AppliedMeshModifier(BaseMeshModifier target)
+        {
+            this.target = target;
+        }
+    }
+    
     [RequireComponent(typeof(MeshFilter)), RequireComponent(typeof(MeshRenderer))]
     [DisallowMultipleComponent, ExecuteAlways]
     public sealed class ProceduralMeshGenerator : MonoBehaviour
@@ -30,7 +42,7 @@ namespace Sxm.ProceduralMeshGenerator
         [SerializeField] private Vector3 offset = Vector3.zero;
         [SerializeField] private int resolution = 1;
 
-        [SerializeField] private List<BaseMeshModifier> modifiers;
+        [SerializeField] private List<AppliedMeshModifier> appliedModifiers;
 
         private Transform _transform;
         private MeshFilter _meshFilter;
@@ -75,7 +87,7 @@ namespace Sxm.ProceduralMeshGenerator
         
         public void AddModifier(BaseMeshModifier modifier)
         {
-            modifiers.Add(modifier);
+            appliedModifiers.Add(new AppliedMeshModifier(modifier));
         }
         
         private void GenerateMesh()
@@ -116,14 +128,14 @@ namespace Sxm.ProceduralMeshGenerator
             var meshFilter = GetComponent<MeshFilter>();
             var vertices = meshFilter.sharedMesh.vertices;
             
-            for (int i = 0; i < modifiers.Count; i++)
+            for (int i = 0; i < appliedModifiers.Count; i++)
             {
-                if (modifiers[i] == null || modifiers[i].IsActive == false)
+                if (appliedModifiers[i].target == null || appliedModifiers[i].isActive == false)
                 {
                     continue;
                 }
                 
-                vertices = modifiers[i].Modify(transform, vertices);
+                vertices = appliedModifiers[i].target.Modify(transform, vertices);
             }
             
             meshFilter.sharedMesh.vertices = vertices;

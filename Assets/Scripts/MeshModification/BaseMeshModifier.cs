@@ -9,12 +9,9 @@ namespace Sxm.ProceduralMeshGenerator.Modification
         protected const float DebugDistanceBetweenVertices = 1f / DebugVerticesResolution;
         
         [SerializeField, HideInInspector] protected Transform meshTransform;
-        [SerializeField, HideInInspector] protected bool isActive = true;
         
         private Transform _axis;
         
-        // todo #2: add support for separate modifier activation
-        public bool IsActive => isActive;
         protected Transform Axis => _axis ? _axis : transform;
         
         private void Awake()
