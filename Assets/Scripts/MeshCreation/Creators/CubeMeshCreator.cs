@@ -157,8 +157,8 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 return;
             }
             
-            var vertices = response.vertices;
-            var normals = response.normals;
+            var vertices = response.Vertices;
+            var normals = response.Normals;
             
             for (int i = 0; i < vertices.Length; i++)
             {

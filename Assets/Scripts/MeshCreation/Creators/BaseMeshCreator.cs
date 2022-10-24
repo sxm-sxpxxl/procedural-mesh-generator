@@ -59,13 +59,15 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 return;
             }
             
-            var vertices = response.vertices;
+            var vertices = response.Vertices;
             var initialPoint = -0.5f * _baseRequest.size + _baseRequest.offset;
             
             for (int i = 0; i < vertices.Length; i++)
             {
                 vertices[i] = initialPoint + Vector3.Scale(vertices[i], _baseRequest.size);
             }
+            
+            response.Bounds = new Bounds(_baseRequest.offset, _baseRequest.size);
         }
         
         protected void CreateVertices(
@@ -254,8 +256,8 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                         ut2Indices[j % 2] = actualVertexIndex;
                     }
 
-                    meshResponse.normals[actualVertexIndex] = getFaceNormal();
-                    meshResponse.uv[actualVertexIndex] = getUV(uniqueIndex);
+                    meshResponse.Normals[actualVertexIndex] = getFaceNormal();
+                    meshResponse.UV[actualVertexIndex] = getUV(uniqueIndex);
                 }
 
                 tv1Indices[0] = ut1Indices[0];

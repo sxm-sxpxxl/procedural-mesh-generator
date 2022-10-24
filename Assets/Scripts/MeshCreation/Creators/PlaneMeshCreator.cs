@@ -43,14 +43,20 @@ namespace Sxm.ProceduralMeshGenerator.Creation
 
         private void TransformTo(Plane axis, Vector3 offset)
         {
-            var vertices = response.vertices;
-            var normals = response.normals;
+            var vertices = response.Vertices;
+            var normals = response.Normals;
                     
             for (int i = 0; i < vertices.Length; i++)
             {
                 vertices[i] = (vertices[i] - offset).AsFor(axis, PlaneMeshRequest.VirtualAxis) + offset;
                 normals[i] = normals[i].AsFor(axis, PlaneMeshRequest.VirtualAxis);
             }
+
+            var bounds = response.Bounds;
+            response.Bounds = new Bounds(
+                bounds.center.AsFor(axis, PlaneMeshRequest.VirtualAxis),
+                bounds.size.AsFor(axis, PlaneMeshRequest.VirtualAxis)
+            );
         }
     }
 }

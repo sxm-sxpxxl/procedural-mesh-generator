@@ -17,8 +17,8 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 isScalingAndOffsetting: false,
                 postProcessCallback: meshResponse =>
                 {
-                    var vertices = meshResponse.vertices;
-                    var normals = meshResponse.normals;
+                    var vertices = meshResponse.Vertices;
+                    var normals = meshResponse.Normals;
                     
                     for (int i = 0; i < vertices.Length; i++)
                     {

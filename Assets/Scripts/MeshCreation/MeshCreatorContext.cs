@@ -25,8 +25,8 @@ namespace Sxm.ProceduralMeshGenerator.Creation
         {
             var meshResponse = _meshCreator.GetLastMeshResponse();
             
-            var vertices = meshResponse.vertices;
-            var normals = meshResponse.normals;
+            var vertices = meshResponse.Vertices;
+            var normals = meshResponse.Normals;
             var withBackfaceCulling = meshResponse.withBackfaceCulling;
             
             if (vertices.Length == 0)
@@ -37,6 +37,9 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             int verticesLength = meshResponse.BackfaceAdjustedVerticesLength;
             var showedVertexGroups = new List<int>(capacity: meshResponse.vertexGroups.Length);
 
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireCube(meshResponse.Bounds.center, meshResponse.Bounds.size);
+            
             for (int i = 0; i < verticesLength; i++)
             {
                 Vector3 actualVertexPosition = relativeTransform.TransformPoint(vertices[i]);

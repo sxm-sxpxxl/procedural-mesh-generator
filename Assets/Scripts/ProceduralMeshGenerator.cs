@@ -87,7 +87,7 @@ namespace Sxm.ProceduralMeshGenerator
         private void OnRenderObject()
         {
             var meshResponse = GenerateMeshByType();
-            ModifyMeshVertices(meshResponse.vertices);
+            ModifyMeshVertices(meshResponse.Vertices);
 
             var meshFilter = MeshFilter;
             meshFilter.sharedMesh = meshResponse.MeshInstance;
