@@ -30,8 +30,10 @@ namespace Sxm.ProceduralMeshGenerator
         [SerializeField] private float vertexSize = 0.01f;
 
         [SerializeField] private bool isVertexLabelShowed = true;
+        [SerializeField] private Color labelColor = Color.white;
         [SerializeField] private bool isDuplicatedVerticesShowed = true;
         [SerializeField] private bool isVertexNormalShowed = true;
+        [SerializeField] private Color normalColor = Color.yellow;
         [SerializeField] private float normalSize = 1f;
 
         [SerializeField] private MeshType meshType = MeshType.Plane;
@@ -72,8 +74,10 @@ namespace Sxm.ProceduralMeshGenerator
                 vertexSize,
                 vertexColor,
                 isVertexLabelShowed,
+                labelColor,
                 isDuplicatedVerticesShowed,
                 isVertexNormalShowed,
+                normalColor,
                 normalSize
             );
         }

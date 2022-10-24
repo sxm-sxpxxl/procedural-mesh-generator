@@ -14,17 +14,22 @@
 }
 
 .spacebar {
-    height: 18px;
+    height: 8px;
 }
 
 .box {
     align-items: flex-start;
-    border-bottom-color: rgb(125, 125, 125);
-    border-bottom-width: 1px;
     margin-left: 8px;
     margin-right: 8px;
     padding-top: 8px;
     padding-bottom: 8px;
+}
+
+.hidden-box {
+    border-left-color: rgb(125, 125, 125);
+    border-left-width: 1px;
+    padding-left: 8px;
+    margin-left: 8px;
 }
 
 .header-text {
@@ -37,14 +42,11 @@
     margin-top: 8px;
 }
 
-.indent > .unity-label {
-    padding-left: 8px;
-}
-
-.indent2x > .unity-label {
-    padding-left: 16px;
-}
-
 .modifiers-controls > .unity-button:active {
     -unity-font-style: bold;
+}
+
+.hidden-box > .unity-label {
+    margin-left: -14px;
+    padding-left: 14px;
 }

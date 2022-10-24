@@ -4,14 +4,14 @@
     <ui:Instance template="ReadOnlyScriptProperty" name="ReadOnlyScriptField" />
     <ui:Label text="Generation" display-tooltip-when-elided="true" name="generation" class="header-text" />
     <uie:EnumField label="Mesh Type" value="Center" name="mesh-type" binding-path="meshType" />
-    <ui:VisualElement name="specific-mesh-type-options" style="align-items: stretch; margin-bottom: 8px; border-left-width: 1px; border-left-color: rgb(125, 125, 125); margin-left: 0;">
+    <ui:VisualElement name="specific-mesh-type-options" class="hidden-box">
         <ui:VisualElement name="plane-type">
-            <uie:EnumField label="Axis" value="Center" name="plane-axis" binding-path="planeAxis" class="indent" />
-            <ui:Toggle label="Backface Culling" name="backface-culling" binding-path="isBackfaceCulling" class="indent" />
-            <ui:Toggle label="Forward Facing" name="forward-facing" binding-path="isForwardFacing" class="indent2x" />
+            <uie:EnumField label="Axis" value="Center" name="plane-axis" binding-path="planeAxis" />
+            <ui:Toggle label="Backface Culling" name="backface-culling" binding-path="isBackfaceCulling" />
+            <ui:Toggle label="Forward Facing" name="forward-facing" binding-path="isForwardFacing" class="hidden-box" />
         </ui:VisualElement>
         <ui:VisualElement name="cube-type">
-            <ui:Slider picking-mode="Ignore" label="Roughness" value="42" high-value="1" show-input-field="true" name="roughness" binding-path="roundness" class="indent" />
+            <ui:Slider picking-mode="Ignore" label="Roughness" value="42" high-value="1" show-input-field="true" name="roughness" binding-path="roundness" />
         </ui:VisualElement>
         <ui:VisualElement name="sphere-type" />
     </ui:VisualElement>
@@ -32,20 +32,29 @@
         <ui:Label text="Selected modifier" display-tooltip-when-elided="true" style="margin-right: 16px; -unity-text-align: middle-left; -unity-font-style: bold;" />
         <uie:ObjectField name="selected-modifier" style="flex-grow: 1;" />
     </ui:VisualElement>
-    <ui:VisualElement name="selected-modifier-container" style="margin-left: 0; margin-right: 0; margin-top: 8px; margin-bottom: 8px; border-left-color: rgb(125, 125, 125); border-left-width: 1px; padding-left: 8px;" />
+    <ui:VisualElement name="selected-modifier-container" class="hidden-box" />
     <Sxm.ProceduralMeshGenerator.FoldoutGroup Label="Debug Options" name="debug-options" style="margin-left: -16px; margin-right: -8px; margin-top: 8px; margin-bottom: 8px;">
         <ui:VisualElement name="vertices-box" class="box">
             <ui:Toggle label="Show Vertices" name="show-vertices" binding-path="areVerticesShowed" class="header-toggle" />
-            <uie:ColorField label="Color" value="RGBA(0.000, 1.000, 1.000, 1.000)" name="vertex-color" binding-path="vertexColor" style="flex-grow: 1;" />
-            <ui:Slider picking-mode="Ignore" label="Size" value="42" high-value="1" name="vertex-size" low-value="0.01" show-input-field="true" binding-path="vertexSize" style="flex-grow: 1;" />
-        </ui:VisualElement>
-        <ui:VisualElement name="labels-box" class="box">
-            <ui:Toggle label="Show Labels" name="show-labels" binding-path="isVertexLabelShowed" class="header-toggle" />
-            <ui:Toggle label="Show Duplicated Vertices" name="show-duplicated-vertices" binding-path="isDuplicatedVerticesShowed" style="flex-grow: 1;" />
-        </ui:VisualElement>
-        <ui:VisualElement name="normals-box" class="box" style="justify-content: space-around; align-items: auto; border-bottom-width: 0;">
-            <ui:Toggle label="Show Normals" name="show-normals" binding-path="isVertexNormalShowed" class="header-toggle" />
-            <ui:Slider picking-mode="Ignore" label="Size" value="42" high-value="1" name="normal-size" low-value="0.01" show-input-field="true" binding-path="normalSize" style="flex-grow: 1;" />
+            <ui:VisualElement name="vertices-options" class="hidden-box" style="align-items: flex-start;">
+                <uie:ColorField label="Color" value="RGBA(0.000, 1.000, 1.000, 1.000)" name="vertex-color" binding-path="vertexColor" style="flex-grow: 1;" />
+                <ui:Slider picking-mode="Ignore" label="Size" value="42" high-value="1" name="vertex-size" low-value="0.01" show-input-field="true" binding-path="vertexSize" style="flex-grow: 1;" />
+                <ui:VisualElement name="spacebar" class="spacebar" />
+                <ui:VisualElement name="labels-box" style="align-items: auto;">
+                    <ui:Toggle label="Show Labels" name="show-labels" binding-path="isVertexLabelShowed" class="header-toggle" />
+                    <ui:VisualElement name="label-options" class="hidden-box" style="align-items: flex-start;">
+                        <uie:ColorField label="Color" value="RGBA(0.000, 1.000, 1.000, 1.000)" name="label-color" binding-path="labelColor" style="flex-grow: 1;" />
+                        <ui:Toggle label="Show Duplicated Vertices" name="show-duplicated-vertices" binding-path="isDuplicatedVerticesShowed" style="flex-grow: 1; height: 20px; display: flex;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="normals-box" style="align-items: auto;">
+                    <ui:Toggle label="Show Normals" name="show-normals" binding-path="isVertexNormalShowed" class="header-toggle" />
+                    <ui:VisualElement name="normal-options" class="hidden-box" style="align-items: flex-start;">
+                        <uie:ColorField label="Color" value="RGBA(0.000, 1.000, 1.000, 1.000)" name="normal-color" binding-path="normalColor" style="flex-grow: 1;" />
+                        <ui:Slider picking-mode="Ignore" label="Size" value="42" high-value="1" name="normal-size" low-value="0.01" show-input-field="true" binding-path="normalSize" style="flex-grow: 1;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
         </ui:VisualElement>
     </Sxm.ProceduralMeshGenerator.FoldoutGroup>
 </ui:UXML>

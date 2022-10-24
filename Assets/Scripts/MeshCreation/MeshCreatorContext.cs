@@ -18,8 +18,10 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             float vertexSize = 0.01f,
             Color vertexColor = default,
             bool showVertexLabels = true,
+            Color labelColor = default,
             bool showDuplicatedVertexLabels = true,
             bool showVertexNormals = true,
+            Color normalColor = default,
             float normalsSize = 0.1f
         )
         {
@@ -76,14 +78,17 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                     {
                         vertexLabel.Append($"V[{targetGroup.selfIndex}]");
                     }
-
-                    Handles.Label(actualVertexPosition, vertexLabel.ToString());
+                    
+                    var style = new GUIStyle();
+                    style.normal.textColor = labelColor;
+                    Handles.Label(actualVertexPosition, vertexLabel.ToString(), style);
+                    
                     showedVertexGroups.Add(targetGroup.selfIndex);
                 }
-
+                
                 if (normals.Length != 0 && showVertexNormals)
                 {
-                    Gizmos.color = Color.yellow;
+                    Gizmos.color = normalColor;
                     Gizmos.DrawRay(
                         actualVertexPosition,
                         relativeTransform.TransformDirection(normalsSize * normals[i])
