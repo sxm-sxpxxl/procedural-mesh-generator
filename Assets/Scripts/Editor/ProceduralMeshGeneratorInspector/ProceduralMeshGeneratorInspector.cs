@@ -63,7 +63,7 @@ namespace Sxm.ProceduralMeshGenerator
 
         private static BaseMeshModifier InjectDependenciesFromTo(ProceduralMeshGenerator target, Object meshModifier)
         {
-            return (meshModifier as BaseMeshModifier).Init(target.transform);
+            return (meshModifier as BaseMeshModifier)?.Init(target.transform);
         }
         
         private static SerializedProperty GetActivePropertyForMeshModifier(SerializedProperty meshModifierProperty) =>

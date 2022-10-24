@@ -11,7 +11,11 @@ namespace Sxm.ProceduralMeshGenerator.Creation
 {
     public sealed class MeshCreatorContext
     {
+        private static readonly float MaxVertexSizeInUnit = 0.01f;
+        private static readonly float MaxNormalSizeInUnit = 0.1f;
+
         private IMeshCreator _meshCreator;
+        private DebugData _data;
         
         [Serializable]
         public sealed class DebugData
@@ -31,6 +35,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
         
         public void DrawDebug(Transform relativeTransform, DebugData data)
         {
+            _data = data;
             var meshResponse = _meshCreator.GetLastMeshResponse();
             
             if (data.isBoundsShowed)
@@ -47,72 +52,131 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             {
                 return;
             }
-            
+
+            float averageBoundsSize = GetAverageSize(meshResponse.Bounds.size);
             int verticesLength = meshResponse.BackfaceAdjustedVerticesLength;
             var showedVertexGroups = new List<int>(capacity: meshResponse.vertexGroups.Length);
             
             for (int i = 0; i < verticesLength; i++)
             {
                 Vector3 actualVertexPosition = relativeTransform.TransformPoint(vertices[i]);
-
-                Gizmos.color = data.vertexColor;
-                Gizmos.DrawSphere(actualVertexPosition, data.vertexSize);
-
-                VertexGroup targetGroup = meshResponse.GetGroupByVertexIndex(i);
-                if (data.isVertexLabelShowed && showedVertexGroups.Contains(targetGroup.selfIndex) == false)
-                {
-                    StringBuilder vertexLabel = new StringBuilder();
-
-                    if (data.isDuplicatedVerticesShowed)
-                    {
-                        vertexLabel.Append("V[");
-
-                        if (targetGroup.hasSingleVertex)
-                        {
-                            vertexLabel.Append(targetGroup.singleIndex);
-                        }
-                        else
-                        {
-                            vertexLabel.AppendJoin(',', targetGroup.indices);
-                        }
-
-                        if (withBackfaceCulling == false)
-                        {
-                            vertexLabel.Append($",{i + verticesLength}");
-                        }
-
-                        vertexLabel.Append(']');
-                    }
-                    else
-                    {
-                        vertexLabel.Append($"V[{targetGroup.selfIndex}]");
-                    }
-                    
-                    var style = new GUIStyle();
-                    style.normal.textColor = data.labelColor;
-                    Handles.Label(actualVertexPosition, vertexLabel.ToString(), style);
-                    
-                    showedVertexGroups.Add(targetGroup.selfIndex);
-                }
+                var actualVertexSize = MaxVertexSizeInUnit * averageBoundsSize * data.vertexSize;
                 
-                if (normals.Length != 0 && data.isVertexNormalShowed)
+                DrawVertex(actualVertexPosition, actualVertexSize);
+                
+                VertexGroup targetGroup = meshResponse.GetGroupByVertexIndex(i);
+                if (showedVertexGroups.Contains(targetGroup.selfIndex) == false)
                 {
-                    Gizmos.color = data.normalColor;
-                    Gizmos.DrawRay(
-                        actualVertexPosition,
-                        relativeTransform.TransformDirection(data.normalSize * normals[i])
+                    bool isLabelDraw = DrawLabelByIndex(
+                        targetGroup,
+                        i,
+                        verticesLength,
+                        withBackfaceCulling,
+                        actualVertexPosition
                     );
                     
-                    if (withBackfaceCulling == false)
+                    if (isLabelDraw)
                     {
-                        Gizmos.DrawRay(
-                            actualVertexPosition,
-                            relativeTransform.TransformDirection(data.normalSize * normals[i + verticesLength])
-                        );
+                        showedVertexGroups.Add(targetGroup.selfIndex);
                     }
                 }
+                
+                var actualNormalSize = MaxNormalSizeInUnit * averageBoundsSize * data.normalSize;
+                DrawNormalByIndex(
+                    normals, 
+                    i,
+                    verticesLength,
+                    withBackfaceCulling,
+                     relativeTransform,
+                    actualVertexPosition,
+                    actualNormalSize
+                );
             }
         }
+
+        private void DrawVertex(Vector3 position, float size)
+        {
+            Gizmos.color = _data.vertexColor;
+            Gizmos.DrawSphere(position, size);
+        }
+
+        private bool DrawLabelByIndex(
+            VertexGroup targetGroup,
+            int index,
+            int backfaceOffset,
+            bool withBackfaceCulling,
+            Vector3 position
+        )
+        {
+            if (_data.isVertexLabelShowed == false)
+            {
+                return false;
+            }
+            
+            StringBuilder vertexLabel = new StringBuilder();
+            if (_data.isDuplicatedVerticesShowed)
+            {
+                vertexLabel.Append("V[");
+
+                if (targetGroup.hasSingleVertex)
+                {
+                    vertexLabel.Append(targetGroup.singleIndex);
+                }
+                else
+                {
+                    vertexLabel.AppendJoin(',', targetGroup.indices);
+                }
+
+                if (withBackfaceCulling == false)
+                {
+                    vertexLabel.Append($",{index + backfaceOffset}");
+                }
+
+                vertexLabel.Append(']');
+            }
+            else
+            {
+                vertexLabel.Append($"V[{targetGroup.selfIndex}]");
+            }
+            
+            var style = new GUIStyle();
+            style.normal.textColor = _data.labelColor;
+            Handles.Label(position, vertexLabel.ToString(), style);
+            
+            return true;
+        }
+        
+        private void DrawNormalByIndex(
+            Vector3[] normals,
+            int index,
+            int backfaceOffset,
+            bool withBackfaceCulling,
+            Transform target,
+            Vector3 position,
+            float normalSize
+        )
+        {
+            if (_data.isVertexNormalShowed == false || normals.Length == 0)
+            {
+                return;
+            }
+            
+            Gizmos.color = _data.normalColor;
+            Gizmos.DrawRay(
+                position,
+                target.TransformDirection(normalSize * normals[index])
+            );
+                    
+            if (withBackfaceCulling == false)
+            {
+                Gizmos.DrawRay(
+                    position,
+                    target.TransformDirection(normalSize * normals[index + backfaceOffset])
+                );
+            }
+        }
+
+        private static float GetAverageSize(Vector3 size) => (size.x + size.y + size.z) / 3f;
         
         public MeshResponse CreateMesh(in BaseMeshRequest request)
         {
