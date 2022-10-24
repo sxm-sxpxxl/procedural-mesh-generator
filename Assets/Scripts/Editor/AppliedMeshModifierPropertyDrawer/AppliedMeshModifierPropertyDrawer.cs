@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 
 namespace Sxm.ProceduralMeshGenerator
 {
-    [CustomPropertyDrawer(typeof(AppliedMeshModifier))]
+    [CustomPropertyDrawer(typeof(ProceduralMeshGenerator.AppliedMeshModifier))]
     public sealed class AppliedMeshModifierPropertyDrawer : PropertyDrawer
     {
         private static readonly string VisibleIconName = "animationvisibilitytoggleon";

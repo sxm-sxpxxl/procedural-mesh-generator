@@ -6,22 +6,25 @@ using Sxm.ProceduralMeshGenerator.Modification;
 
 namespace Sxm.ProceduralMeshGenerator
 {
-    [Serializable]
-    public sealed class AppliedMeshModifier
-    {
-        public bool isActive = true;
-        public BaseMeshModifier target = null;
-
-        public AppliedMeshModifier(BaseMeshModifier target)
-        {
-            this.target = target;
-        }
-    }
-    
     [RequireComponent(typeof(MeshFilter)), RequireComponent(typeof(MeshRenderer))]
     [DisallowMultipleComponent, ExecuteAlways]
     public sealed class ProceduralMeshGenerator : MonoBehaviour
     {
+        [Serializable]
+        public sealed class AppliedMeshModifier
+        {
+            [SerializeField] private bool isActive = true;
+            [SerializeField] private BaseMeshModifier target = null;
+
+            public bool IsActive => isActive;
+            public BaseMeshModifier Target => target;
+
+            public AppliedMeshModifier(BaseMeshModifier target)
+            {
+                this.target = target;
+            }
+        }
+        
         [SerializeField] private bool areVerticesShowed = false;
         [SerializeField] private Color vertexColor = new Color(0f, 0f, 0f, 0.5f);
         [SerializeField] private float vertexSize = 0.01f;
@@ -54,14 +57,16 @@ namespace Sxm.ProceduralMeshGenerator
             { MeshType.Cube, "Procedural Cube" },
             { MeshType.Sphere, "Procedural Sphere" }
         };
+
+        private MeshFilter MeshFilter => _meshFilter ? _meshFilter : GetComponent<MeshFilter>();
         
-        private void OnDragGizmos()
+        private void OnDrawGizmos()
         {
             if (areVerticesShowed == false)
             {
                 return;
             }
-
+            
             _context.DrawDebug(
                 transform,
                 vertexSize,
@@ -81,8 +86,13 @@ namespace Sxm.ProceduralMeshGenerator
 
         private void OnRenderObject()
         {
-            GenerateMesh();
-            ModifyMesh();
+            var meshResponse = GenerateMeshByType();
+            ModifyMeshVertices(meshResponse.vertices);
+
+            var meshFilter = MeshFilter;
+            meshFilter.sharedMesh = meshResponse.MeshInstance;
+            meshFilter.sharedMesh.RecalculateBounds();
+            meshFilter.sharedMesh.RecalculateNormals();
         }
         
         public void AddModifier(BaseMeshModifier modifier)
@@ -90,7 +100,7 @@ namespace Sxm.ProceduralMeshGenerator
             appliedModifiers.Add(new AppliedMeshModifier(modifier));
         }
         
-        private void GenerateMesh()
+        private MeshResponse GenerateMeshByType()
         {
             BaseMeshRequest request = meshType switch
             {
@@ -119,28 +129,21 @@ namespace Sxm.ProceduralMeshGenerator
                 ),
                 _ => throw new ArgumentOutOfRangeException(nameof(meshType), "Not expected mesh type!")
             };
-
-            GetComponent<MeshFilter>().sharedMesh = _context.CreateMesh(request);
+            
+            return _context.CreateMesh(request);
         }
 
-        private void ModifyMesh()
+        private void ModifyMeshVertices(Vector3[] vertices)
         {
-            var meshFilter = GetComponent<MeshFilter>();
-            var vertices = meshFilter.sharedMesh.vertices;
-            
             for (int i = 0; i < appliedModifiers.Count; i++)
             {
-                if (appliedModifiers[i].target == null || appliedModifiers[i].isActive == false)
+                if (appliedModifiers[i].Target == null || appliedModifiers[i].IsActive == false)
                 {
                     continue;
                 }
-                
-                vertices = appliedModifiers[i].target.Modify(vertices);
+
+                appliedModifiers[i].Target.Modify(vertices);
             }
-            
-            meshFilter.sharedMesh.vertices = vertices;
-            meshFilter.sharedMesh.RecalculateBounds();
-            meshFilter.sharedMesh.RecalculateNormals();
         }
     }
 }

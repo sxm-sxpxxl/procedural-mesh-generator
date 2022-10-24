@@ -27,6 +27,6 @@ namespace Sxm.ProceduralMeshGenerator.Modification
             return this;
         }
         
-        public abstract Vector3[] Modify(in Vector3[] vertices);
+        public abstract void Modify(in Vector3[] vertices);
     }
 }

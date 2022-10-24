@@ -19,7 +19,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
 
         internal int BackfaceAdjustedVerticesLength => withBackfaceCulling ? vertices.Length : vertices.Length / 2;
         
-        internal Mesh MeshInstance => new Mesh
+        public Mesh MeshInstance => new Mesh
         {
             name = meshName,
             vertices = vertices,

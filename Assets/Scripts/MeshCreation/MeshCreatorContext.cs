@@ -23,7 +23,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             float normalsSize = 0.1f
         )
         {
-            var meshResponse = _meshCreator.GetMeshResponse();
+            var meshResponse = _meshCreator.GetLastMeshResponse();
             
             var vertices = meshResponse.vertices;
             var normals = meshResponse.normals;
@@ -97,7 +97,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             }
         }
         
-        public Mesh CreateMesh(in BaseMeshRequest request)
+        public MeshResponse CreateMesh(in BaseMeshRequest request)
         {
             _meshCreator = request switch
             {
@@ -107,7 +107,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 _ => throw new ArgumentOutOfRangeException(nameof(request), "Not expected request value!")
             };
 
-            return _meshCreator.CreateMesh();
+            return _meshCreator.CreateMeshResponse();
         }
     }
 }

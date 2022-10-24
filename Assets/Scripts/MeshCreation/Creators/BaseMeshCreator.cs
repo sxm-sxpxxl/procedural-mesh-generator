@@ -45,12 +45,10 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             _baseRequest = request;
         }
         
-        public MeshResponse CreateResponse() =>
+        public MeshResponse CreateMeshResponse() =>
             _baseRequest.postProcessCallback?.Invoke(Handle(_baseRequest)) ?? Handle(_baseRequest);
         
-        Mesh IMeshCreator.CreateMesh() => CreateResponse().MeshInstance;
-        
-        MeshResponse IMeshCreator.GetMeshResponse() => response;
+        MeshResponse IMeshCreator.GetLastMeshResponse() => response;
         
         protected abstract MeshResponse Handle(TRequest request);
 

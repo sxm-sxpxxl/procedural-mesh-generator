@@ -37,7 +37,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                     
                     return meshResponse;
                 }
-            )).CreateResponse();
+            )).CreateMeshResponse();
             
             ScaleAndOffset();
             return response;

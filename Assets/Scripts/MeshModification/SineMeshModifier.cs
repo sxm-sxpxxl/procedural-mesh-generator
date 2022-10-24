@@ -33,7 +33,7 @@ namespace Sxm.ProceduralMeshGenerator.Modification
             GizmosUtils.DrawCurve(points, transform, Color.red);
         }
 
-        public override Vector3[] Modify(in Vector3[] vertices)
+        public override void Modify(in Vector3[] vertices)
         {
             (float4x4 meshToAxis, float4x4 axisToMesh) = MathUtils.GetFromToTransform(meshTransform, Axis);
             var nativeVertices = NativeUtils.GetNativeArrayFrom(vertices, Allocator.TempJob);
@@ -51,8 +51,6 @@ namespace Sxm.ProceduralMeshGenerator.Modification
 
             NativeUtils.SetNativeArrayTo(nativeVertices, vertices);
             nativeVertices.Dispose();
-            
-            return vertices;
         }
     }
     
