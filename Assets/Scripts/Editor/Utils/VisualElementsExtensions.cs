@@ -30,6 +30,22 @@ namespace Sxm.ProceduralMeshGenerator
             field.SetValueWithoutNotify(initValue);
             fieldChangeCallback.Invoke(field, initValue);
         }
+
+        public static void RegisterAndSetNestedField<TFieldType, TValueType>(
+            this VisualElement root,
+            string fieldName,
+            SerializedObject parentSerializedObject,
+            Action<TFieldType, TValueType> fieldChangeCallback
+        ) where TFieldType : BaseField<TValueType>
+        {
+            TFieldType field = root.Q<TFieldType>(fieldName);
+            BindableElement nearestBindableParent = GetNearestParent<BindableElement>(field);
+            
+            SerializedProperty childProperty = parentSerializedObject.FindProperty(nearestBindableParent.bindingPath);
+            SerializedProperty nestedProperty = childProperty.FindPropertyRelative(field.bindingPath);
+            
+            RegisterAndSetField(field, nestedProperty, fieldChangeCallback);
+        }
         
         public static void RegisterAndSetField<TFieldType, TValueType>(
             this VisualElement root,
@@ -39,14 +55,27 @@ namespace Sxm.ProceduralMeshGenerator
         ) where TFieldType : BaseField<TValueType>
         {
             TFieldType field = root.Q<TFieldType>(fieldName);
-            SerializedProperty childProperty = GetBindedPropertyFor(parentSerializedObject, field);
+            SerializedProperty childProperty = parentSerializedObject.FindProperty(field.bindingPath);
             
             RegisterAndSetField(field, childProperty, fieldChangeCallback);
         }
-        
-        private static SerializedProperty GetBindedPropertyFor(
-            SerializedObject serializedObject,
-            BindableElement bindableElement
-        ) => serializedObject.FindProperty(bindableElement.bindingPath);
+
+        private static T GetNearestParent<T>(VisualElement target) where T : VisualElement
+        {
+            var currentParent = target.parent;
+            while (currentParent is not null and not T)
+            {
+                currentParent = currentParent.parent;
+            }
+
+            if (currentParent == null)
+            {
+                throw new ArgumentException(
+                    $"Visual element '{target.name}' doesn't have parent of '{typeof(T).Name}' type."
+                );
+            }
+            
+            return currentParent as T;
+        }
     }
 }

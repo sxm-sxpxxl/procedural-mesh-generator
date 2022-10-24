@@ -13,48 +13,57 @@ namespace Sxm.ProceduralMeshGenerator.Creation
     {
         private IMeshCreator _meshCreator;
         
-        public void DrawDebug(
-            Transform relativeTransform,
-            float vertexSize = 0.01f,
-            Color vertexColor = default,
-            bool showVertexLabels = true,
-            Color labelColor = default,
-            bool showDuplicatedVertexLabels = true,
-            bool showVertexNormals = true,
-            Color normalColor = default,
-            float normalsSize = 0.1f
-        )
+        [Serializable]
+        public sealed class DebugData
+        {
+            [SerializeField] internal bool areVerticesShowed = false;
+            [SerializeField] internal Color vertexColor = new Color(0f, 0f, 0f, 0.5f);
+            [SerializeField] internal float vertexSize = 0.01f;
+            [SerializeField] internal bool isVertexLabelShowed = true;
+            [SerializeField] internal Color labelColor = Color.white;
+            [SerializeField] internal bool isDuplicatedVerticesShowed = true;
+            [SerializeField] internal bool isVertexNormalShowed = true;
+            [SerializeField] internal Color normalColor = Color.yellow;
+            [SerializeField] internal float normalSize = 0.01f;
+            [SerializeField] internal bool isBoundsShowed = false;
+            [SerializeField] internal Color boundsColor = Color.green;
+        }
+        
+        public void DrawDebug(Transform relativeTransform, DebugData data)
         {
             var meshResponse = _meshCreator.GetLastMeshResponse();
             
+            if (data.isBoundsShowed)
+            {
+                Gizmos.color = data.boundsColor;
+                Gizmos.DrawWireCube(meshResponse.Bounds.center, meshResponse.Bounds.size);
+            }
+
             var vertices = meshResponse.Vertices;
             var normals = meshResponse.Normals;
             var withBackfaceCulling = meshResponse.withBackfaceCulling;
             
-            if (vertices.Length == 0)
+            if (data.areVerticesShowed == false || vertices.Length == 0)
             {
                 return;
             }
             
             int verticesLength = meshResponse.BackfaceAdjustedVerticesLength;
             var showedVertexGroups = new List<int>(capacity: meshResponse.vertexGroups.Length);
-
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireCube(meshResponse.Bounds.center, meshResponse.Bounds.size);
             
             for (int i = 0; i < verticesLength; i++)
             {
                 Vector3 actualVertexPosition = relativeTransform.TransformPoint(vertices[i]);
 
-                Gizmos.color = vertexColor;
-                Gizmos.DrawSphere(actualVertexPosition, vertexSize);
+                Gizmos.color = data.vertexColor;
+                Gizmos.DrawSphere(actualVertexPosition, data.vertexSize);
 
                 VertexGroup targetGroup = meshResponse.GetGroupByVertexIndex(i);
-                if (showVertexLabels && showedVertexGroups.Contains(targetGroup.selfIndex) == false)
+                if (data.isVertexLabelShowed && showedVertexGroups.Contains(targetGroup.selfIndex) == false)
                 {
                     StringBuilder vertexLabel = new StringBuilder();
 
-                    if (showDuplicatedVertexLabels)
+                    if (data.isDuplicatedVerticesShowed)
                     {
                         vertexLabel.Append("V[");
 
@@ -80,25 +89,25 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                     }
                     
                     var style = new GUIStyle();
-                    style.normal.textColor = labelColor;
+                    style.normal.textColor = data.labelColor;
                     Handles.Label(actualVertexPosition, vertexLabel.ToString(), style);
                     
                     showedVertexGroups.Add(targetGroup.selfIndex);
                 }
                 
-                if (normals.Length != 0 && showVertexNormals)
+                if (normals.Length != 0 && data.isVertexNormalShowed)
                 {
-                    Gizmos.color = normalColor;
+                    Gizmos.color = data.normalColor;
                     Gizmos.DrawRay(
                         actualVertexPosition,
-                        relativeTransform.TransformDirection(normalsSize * normals[i])
+                        relativeTransform.TransformDirection(data.normalSize * normals[i])
                     );
                     
                     if (withBackfaceCulling == false)
                     {
                         Gizmos.DrawRay(
                             actualVertexPosition,
-                            relativeTransform.TransformDirection(normalsSize * normals[i + verticesLength])
+                            relativeTransform.TransformDirection(data.normalSize * normals[i + verticesLength])
                         );
                     }
                 }

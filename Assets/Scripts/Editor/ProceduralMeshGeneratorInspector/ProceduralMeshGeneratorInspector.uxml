@@ -34,7 +34,7 @@
     </ui:VisualElement>
     <ui:VisualElement name="selected-modifier-container" class="hidden-box" />
     <Sxm.ProceduralMeshGenerator.FoldoutGroup Label="Debug Options" name="debug-options" style="margin-left: -16px; margin-right: -8px; margin-top: 8px; margin-bottom: 8px;">
-        <ui:VisualElement name="vertices-box" class="box">
+        <ui:BindableElement binding-path="debugData" name="vertices-box" class="box">
             <ui:Toggle label="Show Vertices" name="show-vertices" binding-path="areVerticesShowed" class="header-toggle" />
             <ui:VisualElement name="vertices-options" class="hidden-box" style="align-items: flex-start;">
                 <uie:ColorField label="Color" value="RGBA(0.000, 1.000, 1.000, 1.000)" name="vertex-color" binding-path="vertexColor" style="flex-grow: 1;" />
@@ -55,6 +55,12 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
-        </ui:VisualElement>
+        </ui:BindableElement>
+        <ui:BindableElement binding-path="debugData" name="bounds-box" class="box">
+            <ui:Toggle label="Show Bounds" name="show-bounds" binding-path="isBoundsShowed" class="header-toggle" />
+            <ui:VisualElement name="bounds-options" class="hidden-box" style="align-items: flex-start;">
+                <uie:ColorField label="Color" value="RGBA(0.000, 1.000, 1.000, 1.000)" name="bounds-color" binding-path="boundsColor" style="flex-grow: 1;" />
+            </ui:VisualElement>
+        </ui:BindableElement>
     </Sxm.ProceduralMeshGenerator.FoldoutGroup>
 </ui:UXML>

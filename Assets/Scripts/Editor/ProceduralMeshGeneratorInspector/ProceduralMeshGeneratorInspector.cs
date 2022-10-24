@@ -30,9 +30,10 @@ namespace Sxm.ProceduralMeshGenerator
             _root = new VisualElement();
             template.CloneTree(_root);
             
-            _root.RegisterAndSetField<Toggle, bool>("show-vertices", serializedObject, OnDebugOptionToggleChanged);
-            _root.RegisterAndSetField<Toggle, bool>("show-labels", serializedObject, OnDebugOptionToggleChanged);
-            _root.RegisterAndSetField<Toggle, bool>("show-normals", serializedObject, OnDebugOptionToggleChanged);
+            _root.RegisterAndSetNestedField<Toggle, bool>("show-vertices", serializedObject, OnDebugOptionToggleChanged);
+            _root.RegisterAndSetNestedField<Toggle, bool>("show-labels", serializedObject, OnDebugOptionToggleChanged);
+            _root.RegisterAndSetNestedField<Toggle, bool>("show-normals", serializedObject, OnDebugOptionToggleChanged);
+            _root.RegisterAndSetNestedField<Toggle, bool>("show-bounds", serializedObject, OnDebugOptionToggleChanged);
             _root.RegisterAndSetField<EnumField, Enum>("mesh-type", serializedObject, OnMeshTypeChanged);
             _root.RegisterAndSetField<Toggle, bool>("backface-culling", serializedObject, OnBackfaceCullingChanged);
             

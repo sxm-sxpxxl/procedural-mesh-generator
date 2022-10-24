@@ -24,18 +24,8 @@ namespace Sxm.ProceduralMeshGenerator
                 this.target = target;
             }
         }
-        
-        [SerializeField] private bool areVerticesShowed = false;
-        [SerializeField] private Color vertexColor = new Color(0f, 0f, 0f, 0.5f);
-        [SerializeField] private float vertexSize = 0.01f;
 
-        [SerializeField] private bool isVertexLabelShowed = true;
-        [SerializeField] private Color labelColor = Color.white;
-        [SerializeField] private bool isDuplicatedVerticesShowed = true;
-        [SerializeField] private bool isVertexNormalShowed = true;
-        [SerializeField] private Color normalColor = Color.yellow;
-        [SerializeField] private float normalSize = 1f;
-
+        [SerializeField] private MeshCreatorContext.DebugData debugData;
         [SerializeField] private MeshType meshType = MeshType.Plane;
         [SerializeField] private Plane planeAxis = Plane.XZ;
         [SerializeField] private bool isBackfaceCulling = true;
@@ -64,22 +54,7 @@ namespace Sxm.ProceduralMeshGenerator
         
         private void OnDrawGizmos()
         {
-            if (areVerticesShowed == false)
-            {
-                return;
-            }
-            
-            _context.DrawDebug(
-                transform,
-                vertexSize,
-                vertexColor,
-                isVertexLabelShowed,
-                labelColor,
-                isDuplicatedVerticesShowed,
-                isVertexNormalShowed,
-                normalColor,
-                normalSize
-            );
+            _context.DrawDebug(transform, debugData);
         }
 
         private void Awake()
