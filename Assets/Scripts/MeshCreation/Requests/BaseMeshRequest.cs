@@ -14,7 +14,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
         public readonly bool isForwardFacing;
         public readonly bool isBackfaceCulling;
         
-        public readonly Func<MeshResponse, MeshResponse> postProcessCallback;
+        public readonly Func<InterstitialMeshData, InterstitialMeshData> postProcessCallback;
         
         public BaseMeshRequest(
             string name,
@@ -24,7 +24,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             bool isScalingAndOffsetting,
             bool isBackfaceCulling,
             bool isForwardFacing,
-            Func<MeshResponse, MeshResponse> postProcessCallback = null
+            Func<InterstitialMeshData, InterstitialMeshData> postProcessCallback = null
         )
         {
             this.name = name;

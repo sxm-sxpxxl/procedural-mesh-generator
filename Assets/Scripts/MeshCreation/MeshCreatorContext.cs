@@ -33,38 +33,38 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             [SerializeField] internal Color boundsColor = Color.green;
         }
         
-        public void DrawDebug(Transform relativeTransform, DebugData data)
+        public void DrawDebug(Transform relativeTransform, DebugData debugData)
         {
-            _data = data;
-            var meshResponse = _meshCreator.GetLastMeshResponse();
+            _data = debugData;
+            var meshData = _meshCreator.GetLastMeshData();
             
-            if (data.isBoundsShowed)
+            if (debugData.isBoundsShowed)
             {
-                Gizmos.color = data.boundsColor;
-                Gizmos.DrawWireCube(meshResponse.Bounds.center, meshResponse.Bounds.size);
+                Gizmos.color = debugData.boundsColor;
+                Gizmos.DrawWireCube(meshData.Bounds.center, meshData.Bounds.size);
             }
 
-            var vertices = meshResponse.Vertices;
-            var normals = meshResponse.Normals;
-            var withBackfaceCulling = meshResponse.withBackfaceCulling;
+            var vertices = meshData.Vertices;
+            var normals = meshData.Normals;
+            var withBackfaceCulling = meshData.withBackfaceCulling;
             
-            if (data.areVerticesShowed == false || vertices.Length == 0)
+            if (debugData.areVerticesShowed == false || vertices.Length == 0)
             {
                 return;
             }
 
-            float averageBoundsSize = GetAverageSize(meshResponse.Bounds.size);
-            int verticesLength = meshResponse.BackfaceAdjustedVerticesLength;
-            var showedVertexGroups = new List<int>(capacity: meshResponse.vertexGroups.Length);
+            float averageBoundsSize = GetAverageSize(meshData.Bounds.size);
+            int verticesLength = meshData.BackfaceAdjustedVerticesLength;
+            var showedVertexGroups = new List<int>(capacity: meshData.vertexGroups.Length);
             
             for (int i = 0; i < verticesLength; i++)
             {
                 Vector3 actualVertexPosition = relativeTransform.TransformPoint(vertices[i]);
-                var actualVertexSize = MaxVertexSizeInUnit * averageBoundsSize * data.vertexSize;
+                var actualVertexSize = MaxVertexSizeInUnit * averageBoundsSize * debugData.vertexSize;
                 
                 DrawVertex(actualVertexPosition, actualVertexSize);
                 
-                VertexGroup targetGroup = meshResponse.GetGroupByVertexIndex(i);
+                VertexGroup targetGroup = meshData.GetGroupByVertexIndex(i);
                 if (showedVertexGroups.Contains(targetGroup.selfIndex) == false)
                 {
                     bool isLabelDraw = DrawLabelByIndex(
@@ -81,7 +81,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                     }
                 }
                 
-                var actualNormalSize = MaxNormalSizeInUnit * averageBoundsSize * data.normalSize;
+                var actualNormalSize = MaxNormalSizeInUnit * averageBoundsSize * debugData.normalSize;
                 DrawNormalByIndex(
                     normals, 
                     i,
@@ -178,7 +178,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
 
         private static float GetAverageSize(Vector3 size) => (size.x + size.y + size.z) / 3f;
         
-        public MeshResponse CreateMesh(in BaseMeshRequest request)
+        public InterstitialMeshData CreateMeshData(in BaseMeshRequest request)
         {
             _meshCreator = request switch
             {
@@ -188,7 +188,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 _ => throw new ArgumentOutOfRangeException(nameof(request), "Not expected request value!")
             };
 
-            return _meshCreator.CreateMeshResponse();
+            return _meshCreator.CreateMeshData();
         }
     }
 }

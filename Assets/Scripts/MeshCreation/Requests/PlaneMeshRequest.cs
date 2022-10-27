@@ -18,7 +18,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             bool isScalingAndOffsetting = true,
             bool isBackfaceCulling = true,
             bool isForwardFacing = true,
-            Func<MeshResponse, MeshResponse> postProcessCallback = null
+            Func<InterstitialMeshData, InterstitialMeshData> postProcessCallback = null
         ) : base(
             name,
             resolution,

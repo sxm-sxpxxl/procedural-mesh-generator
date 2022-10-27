@@ -2,7 +2,7 @@
     <ui:Template name="ReadOnlyScriptProperty" src="project://database/Assets/Scripts/Editor/CustomControls/ReadOnlyScriptField.uxml?fileID=9197481963319205126&amp;guid=c3df0b864f13be449a41bd3b0e899919&amp;type=3#ReadOnlyScriptField" />
     <Style src="project://database/Assets/Scripts/Editor/ProceduralMeshGeneratorInspector/ProceduralMeshGeneratorInspector.uss?fileID=7433441132597879392&amp;guid=e2da82a3a0ad09f4590ec58821bf21af&amp;type=3#ProceduralMeshGeneratorInspector" />
     <ui:Instance template="ReadOnlyScriptProperty" name="ReadOnlyScriptField" />
-    <ui:Label text="Generation" display-tooltip-when-elided="true" name="generation" class="header-text" />
+    <ui:Label text="Creation" display-tooltip-when-elided="true" name="creation" class="header-text" />
     <uie:EnumField label="Mesh Type" value="Center" name="mesh-type" binding-path="meshType" />
     <ui:VisualElement name="specific-mesh-type-options" class="hidden-box">
         <ui:VisualElement name="plane-type">

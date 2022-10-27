@@ -7,7 +7,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
     {
         public CubeMeshCreator(in CubeMeshRequest request) : base(in request) { }
         
-        protected override MeshResponse Handle(CubeMeshRequest request)
+        protected override InterstitialMeshData Handle(CubeMeshRequest request)
         {
             int resolution = request.resolution;
             float distanceBetweenVertices = 1f / resolution;
@@ -147,7 +147,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             RoundCube(request.roundness);
             ScaleAndOffset();
             
-            return response;
+            return meshData;
         }
 
         private void RoundCube(float roundness)
@@ -157,8 +157,8 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 return;
             }
             
-            var vertices = response.Vertices;
-            var normals = response.Normals;
+            var vertices = meshData.Vertices;
+            var normals = meshData.Normals;
             
             for (int i = 0; i < vertices.Length; i++)
             {

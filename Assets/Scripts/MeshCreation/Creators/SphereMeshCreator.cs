@@ -6,19 +6,19 @@ namespace Sxm.ProceduralMeshGenerator.Creation
     {
         public SphereMeshCreator(in SphereMeshRequest request) : base(in request) { }
         
-        protected override MeshResponse Handle(SphereMeshRequest request)
+        protected override InterstitialMeshData Handle(SphereMeshRequest request)
         {
-            response = new CubeMeshCreator(new CubeMeshRequest(
+            meshData = new CubeMeshCreator(new CubeMeshRequest(
                 request.name,
                 request.resolution,
                 size: Vector3.one,
                 offset: Vector3.zero,
                 roundness: 0f,
                 isScalingAndOffsetting: false,
-                postProcessCallback: meshResponse =>
+                postProcessCallback: meshData =>
                 {
-                    var vertices = meshResponse.Vertices;
-                    var normals = meshResponse.Normals;
+                    var vertices = meshData.Vertices;
+                    var normals = meshData.Normals;
                     
                     for (int i = 0; i < vertices.Length; i++)
                     {
@@ -35,12 +35,12 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                         vertices[i] = 0.5f * (Vector3.one + pointOnSphere);
                     }
                     
-                    return meshResponse;
+                    return meshData;
                 }
-            )).CreateMeshResponse();
+            )).CreateMeshData();
             
             ScaleAndOffset();
-            return response;
+            return meshData;
         }
     }
 }

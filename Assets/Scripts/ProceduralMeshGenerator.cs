@@ -41,7 +41,7 @@ namespace Sxm.ProceduralMeshGenerator
 
         private Transform _transform;
         private MeshFilter _meshFilter;
-        private readonly MeshCreatorContext _context = new MeshCreatorContext();
+        private readonly MeshCreatorContext _meshCreatorContext = new MeshCreatorContext();
         
         private static readonly Dictionary<MeshType, string> MeshTypeNames = new Dictionary<MeshType, string>
         {
@@ -54,7 +54,7 @@ namespace Sxm.ProceduralMeshGenerator
         
         private void OnDrawGizmos()
         {
-            _context.DrawDebug(transform, debugData);
+            _meshCreatorContext.DrawDebug(transform, debugData);
         }
 
         private void Awake()
@@ -65,11 +65,11 @@ namespace Sxm.ProceduralMeshGenerator
 
         private void OnRenderObject()
         {
-            var meshResponse = GenerateMeshByType();
-            ModifyMeshVertices(meshResponse.Vertices);
+            var meshData = CreateMeshByType();
+            ModifyMeshVertices(meshData.Vertices);
 
             var meshFilter = MeshFilter;
-            meshFilter.sharedMesh = meshResponse.MeshInstance;
+            meshFilter.sharedMesh = meshData.MeshInstance;
             meshFilter.sharedMesh.RecalculateBounds();
             meshFilter.sharedMesh.RecalculateNormals();
         }
@@ -79,7 +79,7 @@ namespace Sxm.ProceduralMeshGenerator
             appliedModifiers.Add(new AppliedMeshModifier(modifier));
         }
         
-        private MeshResponse GenerateMeshByType()
+        private InterstitialMeshData CreateMeshByType()
         {
             BaseMeshRequest request = meshType switch
             {
@@ -109,7 +109,7 @@ namespace Sxm.ProceduralMeshGenerator
                 _ => throw new ArgumentOutOfRangeException(nameof(meshType), "Not expected mesh type!")
             };
             
-            return _context.CreateMesh(request);
+            return _meshCreatorContext.CreateMeshData(request);
         }
 
         private void ModifyMeshVertices(Vector3[] vertices)

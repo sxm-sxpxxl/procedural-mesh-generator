@@ -8,7 +8,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
     {
         private TRequest _baseRequest;
         
-        protected MeshResponse response;
+        protected InterstitialMeshData meshData;
         
         protected enum RotationDirection
         {
@@ -45,12 +45,12 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             _baseRequest = request;
         }
         
-        public MeshResponse CreateMeshResponse() =>
+        public InterstitialMeshData CreateMeshData() =>
             _baseRequest.postProcessCallback?.Invoke(Handle(_baseRequest)) ?? Handle(_baseRequest);
         
-        MeshResponse IMeshCreator.GetLastMeshResponse() => response;
+        InterstitialMeshData IMeshCreator.GetLastMeshData() => meshData;
         
-        protected abstract MeshResponse Handle(TRequest request);
+        protected abstract InterstitialMeshData Handle(TRequest request);
 
         protected void ScaleAndOffset()
         {
@@ -59,7 +59,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 return;
             }
             
-            var vertices = response.Vertices;
+            var vertices = meshData.Vertices;
             var initialPoint = -0.5f * _baseRequest.size + _baseRequest.offset;
             
             for (int i = 0; i < vertices.Length; i++)
@@ -67,7 +67,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 vertices[i] = initialPoint + Vector3.Scale(vertices[i], _baseRequest.size);
             }
             
-            response.Bounds = new Bounds(_baseRequest.offset, _baseRequest.size);
+            meshData.Bounds = new Bounds(_baseRequest.offset, _baseRequest.size);
         }
         
         protected void CreateVertices(
@@ -129,7 +129,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 currentAllGroupsSize += vertexGroupSize - 1;
             }
 
-            response = new MeshResponse(
+            meshData = new InterstitialMeshData(
                 _baseRequest.name,
                 verticesCount: allGroupsCountWithBackface + currentAllGroupsSize - excludedVertexGroupsCount,
                 vertexGroups,
@@ -155,7 +155,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 SetFace(
                     indices,
                     startIndex: i * oneFaceIndicesCount,
-                    response,
+                    meshData,
                     actualTraversalOrder,
                     face.getActualVertexGroupIndex,
                     face.getFaceNormal,
@@ -169,9 +169,9 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                     SetFace(
                         indices,
                         startIndex: (i + 1) * oneFaceIndicesCount,
-                        response,
+                        meshData,
                         (RotationDirection) (1 - (int) actualTraversalOrder),
-                        index => face.getActualVertexGroupIndex(index) + response.vertexGroups.Length / 2,
+                        index => face.getActualVertexGroupIndex(index) + meshData.vertexGroups.Length / 2,
                         () => -face.getFaceNormal(),
                         face.getUV,
                         face.vertexGroupOffset,
@@ -180,13 +180,13 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 }
             }
 
-            response.SetTriangles(indices);
+            meshData.SetTriangles(indices);
         }
 
         private void SetFace(
             int[] indices,
             int startIndex,
-            in MeshResponse meshResponse,
+            in InterstitialMeshData interstitialMeshData,
             RotationDirection traversalOrder,
             Func<int, int> getActualVertexGroupIndex,
             Func<Vector3> getFaceNormal,
@@ -197,8 +197,8 @@ namespace Sxm.ProceduralMeshGenerator.Creation
         {
             int resolution = _baseRequest.resolution;
             int faceIndicesCount = GetFaceIndicesCountBy(resolution);
-            int[] excludedVertexGroupsMap = meshResponse.excludedVertexGroupsMap;
-            VertexGroup[] vertexGroups = meshResponse.vertexGroups;
+            int[] excludedVertexGroupsMap = interstitialMeshData.excludedVertexGroupsMap;
+            VertexGroup[] vertexGroups = interstitialMeshData.vertexGroups;
 
             int ConvertToTriangleSpace(int index) => (index % 2 == 0) ? (index / 2) : (index / 2 + (resolution + 1));
             
@@ -256,8 +256,8 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                         ut2Indices[j % 2] = actualVertexIndex;
                     }
 
-                    meshResponse.Normals[actualVertexIndex] = getFaceNormal();
-                    meshResponse.UV[actualVertexIndex] = getUV(uniqueIndex);
+                    interstitialMeshData.Normals[actualVertexIndex] = getFaceNormal();
+                    interstitialMeshData.UV[actualVertexIndex] = getUV(uniqueIndex);
                 }
 
                 tv1Indices[0] = ut1Indices[0];

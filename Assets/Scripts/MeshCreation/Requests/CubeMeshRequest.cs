@@ -14,7 +14,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             Vector3 offset,
             float roundness,
             bool isScalingAndOffsetting = true,
-            Func<MeshResponse, MeshResponse> postProcessCallback = null
+            Func<InterstitialMeshData, InterstitialMeshData> postProcessCallback = null
         ) : base(
             name,
             resolution,

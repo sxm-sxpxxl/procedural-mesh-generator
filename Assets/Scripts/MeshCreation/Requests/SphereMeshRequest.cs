@@ -10,7 +10,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             int resolution,
             Vector3 size,
             Vector3 offset,
-            Func<MeshResponse, MeshResponse> postProcessCallback = null
+            Func<InterstitialMeshData, InterstitialMeshData> postProcessCallback = null
         ) : base(
             name,
             resolution,

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Sxm.ProceduralMeshGenerator.Creation
 {
-    public sealed class MeshResponse
+    public sealed class InterstitialMeshData
     {
         internal readonly bool withBackfaceCulling;
         internal readonly int[] excludedVertexGroupsMap;
@@ -30,7 +30,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             triangles = _triangles
         };
         
-        internal MeshResponse(
+        internal InterstitialMeshData(
             string meshName,
             int verticesCount,
             VertexGroup[] vertexGroups,

@@ -6,7 +6,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
     {
         public PlaneMeshCreator(in PlaneMeshRequest request) : base(in request) { }
         
-        protected override MeshResponse Handle(PlaneMeshRequest request)
+        protected override InterstitialMeshData Handle(PlaneMeshRequest request)
         {
             int resolution = request.resolution;
             float distanceBetweenVertices = 1f / resolution;
@@ -38,13 +38,13 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             ScaleAndOffset();
             TransformTo(request.axis, request.offset);
             
-            return response;
+            return meshData;
         }
 
         private void TransformTo(Plane axis, Vector3 offset)
         {
-            var vertices = response.Vertices;
-            var normals = response.Normals;
+            var vertices = meshData.Vertices;
+            var normals = meshData.Normals;
                     
             for (int i = 0; i < vertices.Length; i++)
             {
@@ -52,8 +52,8 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 normals[i] = normals[i].AsFor(axis, PlaneMeshRequest.VirtualAxis);
             }
 
-            var bounds = response.Bounds;
-            response.Bounds = new Bounds(
+            var bounds = meshData.Bounds;
+            meshData.Bounds = new Bounds(
                 bounds.center.AsFor(axis, PlaneMeshRequest.VirtualAxis),
                 bounds.size.AsFor(axis, PlaneMeshRequest.VirtualAxis)
             );
