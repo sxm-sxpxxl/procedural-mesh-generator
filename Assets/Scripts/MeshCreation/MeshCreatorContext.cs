@@ -38,12 +38,8 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             _data = debugData;
             var meshData = _meshCreator.GetLastMeshData();
             
-            if (debugData.isBoundsShowed)
-            {
-                Gizmos.color = debugData.boundsColor;
-                Gizmos.DrawWireCube(meshData.Bounds.center, meshData.Bounds.size);
-            }
-
+            DrawBounds(meshData.Bounds.center, meshData.Bounds.size, relativeTransform);
+            
             var vertices = meshData.Vertices;
             var normals = meshData.Normals;
             var withBackfaceCulling = meshData.withBackfaceCulling;
@@ -94,10 +90,19 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             }
         }
 
-        private void DrawVertex(Vector3 position, float size)
+        private void DrawBounds(Vector3 center, Vector3 size, Transform target)
+        {
+            if (_data.isBoundsShowed)
+            {
+                Gizmos.color = _data.boundsColor;
+                Gizmos.DrawWireCube(target.TransformPoint(center), target.TransformDirection(size));
+            }
+        }
+
+        private void DrawVertex(Vector3 worldPosition, float size)
         {
             Gizmos.color = _data.vertexColor;
-            Gizmos.DrawSphere(position, size);
+            Gizmos.DrawSphere(worldPosition, size);
         }
 
         private bool DrawLabelByIndex(
@@ -105,7 +110,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             int index,
             int backfaceOffset,
             bool withBackfaceCulling,
-            Vector3 position
+            Vector3 worldPosition
         )
         {
             if (_data.isVertexLabelShowed == false)
@@ -141,7 +146,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             
             var style = new GUIStyle();
             style.normal.textColor = _data.labelColor;
-            Handles.Label(position, vertexLabel.ToString(), style);
+            Handles.Label(worldPosition, vertexLabel.ToString(), style);
             
             return true;
         }
