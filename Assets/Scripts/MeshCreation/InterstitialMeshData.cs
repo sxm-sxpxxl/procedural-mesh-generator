@@ -12,11 +12,11 @@ namespace Sxm.ProceduralMeshGenerator.Creation
         private readonly int[] _vertexGroupIndices;
         private int[] _triangles;
         
-        public string MeshName { get; internal set; }
+        public string MeshName { get; set; }
+        public Bounds Bounds { get; set; }
         public Vector3[] Vertices { get; internal set; }
         public Vector3[] Normals { get; internal set; }
         public Vector2[] UV { get; internal set; }
-        public Bounds Bounds { get; internal set; }
         
         internal int BackfaceAdjustedVerticesLength => withBackfaceCulling ? Vertices.Length : Vertices.Length / 2;
         
@@ -54,7 +54,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
         internal void SetTriangles(int[] triangles) => _triangles = triangles;
         
         internal VertexGroup GetGroupByVertexIndex(int index) => vertexGroups[_vertexGroupIndices[index]];
-
+        
         private T[] GetParametersByVertexGroups<T>(int verticesCount, Func<VertexGroup, T> getParameter) where T : struct
         {
             var parameters = new T[verticesCount];

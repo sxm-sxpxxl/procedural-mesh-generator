@@ -7,6 +7,14 @@ namespace Sxm.ProceduralMeshGenerator.Modification
 {
     internal static class NativeUtils
     {
+        public static NativeArray<T> GetSingleNativeArrayFor<T>(T value, Allocator allocator) where T : struct
+        {
+            var singleArray = new NativeArray<T>(1, allocator, NativeArrayOptions.UninitializedMemory);
+            singleArray[0] = value;
+            
+            return singleArray;
+        }
+        
         public static unsafe NativeArray<float3> GetNativeArrayFrom(Vector3[] managedArray, Allocator allocator)
         {
             var nativeArray = new NativeArray<float3>(managedArray.Length, allocator, NativeArrayOptions.UninitializedMemory);

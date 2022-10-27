@@ -33,12 +33,11 @@ namespace Sxm.ProceduralMeshGenerator.Modification
             GizmosUtils.DrawCurve(points, transform, Color.red);
         }
 
-        public override void Modify(in Vector3[] vertices)
+        protected override JobHandle ApplyOn(NativeArray<float3> vertices)
         {
             (float4x4 meshToAxis, float4x4 axisToMesh) = MathUtils.GetFromToTransform(meshTransform, Axis);
-            var nativeVertices = NativeUtils.GetNativeArrayFrom(vertices, Allocator.TempJob);
             
-            new SineModifyJob
+            return new SineModifyJob
             {
                 amplitude = amplitude,
                 falloff = falloff,
@@ -46,15 +45,12 @@ namespace Sxm.ProceduralMeshGenerator.Modification
                 axisToMesh = axisToMesh,
                 frequency = frequency,
                 scaledTime = ScaledTime,
-                vertices = nativeVertices
-            }.Schedule(nativeVertices.Length, 0).Complete();
-
-            NativeUtils.SetNativeArrayTo(nativeVertices, vertices);
-            nativeVertices.Dispose();
+                vertices = vertices
+            }.Schedule(vertices.Length, 0);
         }
     }
     
-    [BurstCompile(CompileSynchronously = true)]
+    [BurstCompile]
     internal struct SineModifyJob : IJobParallelFor
     {
         [ReadOnly] public float amplitude;

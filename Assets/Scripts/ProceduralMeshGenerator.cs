@@ -24,22 +24,21 @@ namespace Sxm.ProceduralMeshGenerator
                 this.target = target;
             }
         }
-
+        
         [SerializeField] private MeshCreatorContext.DebugData debugData;
         [SerializeField] private MeshType meshType = MeshType.Plane;
         [SerializeField] private Plane planeAxis = Plane.XZ;
         [SerializeField] private bool isBackfaceCulling = true;
         [SerializeField] private bool isForwardFacing = true;
         [SerializeField] private float roundness = 0f;
-
+        
         [SerializeField] private Vector2 size2d = Vector2.one;
         [SerializeField] private Vector3 size3d = Vector3.one;
         [SerializeField] private Vector3 offset = Vector3.zero;
         [SerializeField] private int resolution = 1;
-
+        
         [SerializeField] private List<AppliedMeshModifier> appliedModifiers;
-
-        private Transform _transform;
+        
         private MeshFilter _meshFilter;
         private readonly MeshCreatorContext _meshCreatorContext = new MeshCreatorContext();
         
@@ -59,19 +58,16 @@ namespace Sxm.ProceduralMeshGenerator
 
         private void Awake()
         {
-            _transform = transform;
             _meshFilter = GetComponent<MeshFilter>();
         }
-
+        
         private void OnRenderObject()
         {
             var meshData = CreateMeshByType();
-            ModifyMeshVertices(meshData.Vertices);
-
+            ModifyMeshVertices(meshData);
+            
             var meshFilter = MeshFilter;
             meshFilter.sharedMesh = meshData.MeshInstance;
-            meshFilter.sharedMesh.RecalculateBounds();
-            meshFilter.sharedMesh.RecalculateNormals();
         }
         
         public void AddModifier(BaseMeshModifier modifier)
@@ -112,7 +108,7 @@ namespace Sxm.ProceduralMeshGenerator
             return _meshCreatorContext.CreateMeshData(request);
         }
 
-        private void ModifyMeshVertices(Vector3[] vertices)
+        private void ModifyMeshVertices(InterstitialMeshData meshData)
         {
             for (int i = 0; i < appliedModifiers.Count; i++)
             {
@@ -121,7 +117,7 @@ namespace Sxm.ProceduralMeshGenerator
                     continue;
                 }
 
-                appliedModifiers[i].Target.Modify(vertices);
+                appliedModifiers[i].Target.Modify(meshData);
             }
         }
     }

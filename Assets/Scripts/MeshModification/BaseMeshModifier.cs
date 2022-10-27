@@ -1,4 +1,8 @@
-﻿using UnityEngine;
+﻿using Sxm.ProceduralMeshGenerator.Creation;
+using Unity.Collections;
+using Unity.Jobs;
+using Unity.Mathematics;
+using UnityEngine;
 
 namespace Sxm.ProceduralMeshGenerator.Modification
 {
@@ -26,7 +30,24 @@ namespace Sxm.ProceduralMeshGenerator.Modification
             this.meshTransform = meshTransform;
             return this;
         }
+
+        public void Modify(InterstitialMeshData meshData)
+        {
+            var nativeVertices = NativeUtils.GetNativeArrayFrom(meshData.Vertices, Allocator.TempJob);
+            var nativeBounds = NativeUtils.GetSingleNativeArrayFor((bounds) meshData.Bounds, Allocator.TempJob);
+            
+            var jobHandle = ApplyOn(nativeVertices);
+            jobHandle = MeshUtils.RecalculateBounds(nativeBounds, nativeVertices, jobHandle);
+            
+            jobHandle.Complete();
+            
+            NativeUtils.SetNativeArrayTo(nativeVertices, meshData.Vertices);
+            meshData.Bounds = nativeBounds[0];
+            
+            nativeVertices.Dispose();
+            nativeBounds.Dispose();
+        }
         
-        public abstract void Modify(in Vector3[] vertices);
+        protected abstract JobHandle ApplyOn(NativeArray<float3> vertices);
     }
 }
