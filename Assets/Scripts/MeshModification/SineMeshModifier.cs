@@ -35,7 +35,7 @@ namespace Sxm.ProceduralMeshGenerator.Modification
 
         protected override JobHandle ApplyOn(NativeArray<float3> vertices)
         {
-            (float4x4 meshToAxis, float4x4 axisToMesh) = MathUtils.GetFromToTransform(meshTransform, Axis);
+            (float4x4 meshToAxis, float4x4 axisToMesh) = MathUtils.GetFromToTransform(MeshAxis, ModifierAxis);
             
             return new SineModifyJob
             {

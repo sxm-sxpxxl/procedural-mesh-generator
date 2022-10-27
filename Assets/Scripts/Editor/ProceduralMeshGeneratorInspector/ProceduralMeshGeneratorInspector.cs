@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using UnityEngine.Assertions;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor;
@@ -54,16 +55,9 @@ namespace Sxm.ProceduralMeshGenerator
 
         private static void SetMeshModifierProperty(SerializedProperty meshModifierProperty, Object meshModifier)
         {
-            var target = meshModifierProperty.serializedObject.targetObject;
-            var initializedMeshModifier = InjectDependenciesFromTo(target as ProceduralMeshGenerator, meshModifier);
-            
+            Assert.IsTrue(meshModifier is BaseMeshModifier or null);
             GetActivePropertyForMeshModifier(meshModifierProperty).boolValue = true;
-            GetTargetPropertyForMeshModifier(meshModifierProperty).objectReferenceValue = initializedMeshModifier;
-        }
-
-        private static BaseMeshModifier InjectDependenciesFromTo(ProceduralMeshGenerator target, Object meshModifier)
-        {
-            return (meshModifier as BaseMeshModifier)?.Init(target.transform);
+            GetTargetPropertyForMeshModifier(meshModifierProperty).objectReferenceValue = meshModifier;
         }
         
         private static SerializedProperty GetActivePropertyForMeshModifier(SerializedProperty meshModifierProperty) =>

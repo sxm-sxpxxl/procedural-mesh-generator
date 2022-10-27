@@ -12,27 +12,45 @@ namespace Sxm.ProceduralMeshGenerator.Modification
         protected const int DebugVerticesResolution = 64;
         protected const float DebugDistanceBetweenVertices = 1f / DebugVerticesResolution;
         
-        [SerializeField, HideInInspector] protected Transform meshTransform;
-        
-        private Transform _axis;
-        
-        protected Transform Axis => _axis ? _axis : transform;
-        
-        private void Awake()
+        private Transform _meshTransform;
+        private Transform _selfTransform;
+
+        protected Transform MeshAxis
         {
-            _axis = transform;
+            get
+            {
+                if (_meshTransform == null)
+                {
+                    _meshTransform = transform.parent;
+                }
+                
+                return _meshTransform;
+            }
+        }
+
+        protected Transform ModifierAxis
+        {
+            get
+            {
+                if (_selfTransform == null)
+                {
+                    _selfTransform = transform;
+                }
+
+                return _selfTransform;
+            }
         }
         
         protected abstract void OnDrawGizmosSelected();
         
-        public BaseMeshModifier Init(Transform meshTransform)
-        {
-            this.meshTransform = meshTransform;
-            return this;
-        }
-
         public void Modify(InterstitialMeshData meshData)
         {
+            if (MeshAxis == null)
+            {
+                Debug.LogWarning($"Modifier '{gameObject.name}' must be child of '{nameof(ProceduralMeshGenerator)}'");
+                return;
+            }
+            
             var nativeVertices = NativeUtils.GetNativeArrayFrom(meshData.Vertices, Allocator.TempJob);
             var nativeBounds = NativeUtils.GetSingleNativeArrayFor((bounds) meshData.Bounds, Allocator.TempJob);
             
