@@ -51,19 +51,17 @@ namespace Sxm.ProceduralMeshGenerator.Modification
                 return;
             }
             
-            var nativeVertices = NativeUtils.GetNativeArrayFrom(meshData.Vertices, Allocator.TempJob);
-            var nativeBounds = NativeUtils.GetSingleNativeArrayFor((bounds) meshData.Bounds, Allocator.TempJob);
+            var nativeVertices = NativeUtils.CreateNativeArrayFrom<Vector3, float3>(meshData.Vertices, Allocator.TempJob);
+            var nativeTriangles = NativeUtils.CreateNativeArrayFrom(meshData.Triangles, Allocator.TempJob);
             
-            var jobHandle = ApplyOn(nativeVertices);
-            jobHandle = MeshUtils.RecalculateBounds(nativeBounds, nativeVertices, jobHandle);
+            ApplyOn(nativeVertices).Complete();
+            NativeUtils.CopyNativeArrayTo(nativeVertices, meshData.Vertices);
             
-            jobHandle.Complete();
-            
-            NativeUtils.SetNativeArrayTo(nativeVertices, meshData.Vertices);
-            meshData.Bounds = nativeBounds[0];
+            meshData.Bounds = MeshUtils.RecalculateBounds(nativeVertices);
+            MeshUtils.RecalculateNormals(meshData.Normals, nativeVertices, nativeTriangles);
             
             nativeVertices.Dispose();
-            nativeBounds.Dispose();
+            nativeTriangles.Dispose();
         }
         
         protected abstract JobHandle ApplyOn(NativeArray<float3> vertices);

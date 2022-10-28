@@ -28,16 +28,16 @@ namespace Sxm.ProceduralMeshGenerator.Modification
     public struct RecalculateBoundsJob : IJob
     {
         [ReadOnly] public NativeArray<float3> vertices;
-        [WriteOnly] public NativeArray<bounds> bounds;
+        [WriteOnly] public NativeReference<bounds> bounds;
         
         public void Execute()
         {
-            float3 min, max;
+            float3 min, max, v;
             min = max = vertices[0];
 
             for (int i = 1; i < vertices.Length; i++)
             {
-                var v = vertices[i];
+                v = vertices[i];
                 
                 for (int j = 0; j < 3; j++)
                 {
@@ -53,7 +53,7 @@ namespace Sxm.ProceduralMeshGenerator.Modification
                 }
             }
             
-            bounds[0] = new bounds(min, max);
+            bounds.Value = new bounds(min, max);
         }
     }
 }

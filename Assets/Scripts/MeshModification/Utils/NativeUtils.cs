@@ -1,44 +1,42 @@
-﻿using UnityEngine;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.Mathematics;
 
 namespace Sxm.ProceduralMeshGenerator.Modification
 {
     internal static class NativeUtils
     {
-        public static NativeArray<T> GetSingleNativeArrayFor<T>(T value, Allocator allocator) where T : struct
-        {
-            var singleArray = new NativeArray<T>(1, allocator, NativeArrayOptions.UninitializedMemory);
-            singleArray[0] = value;
-            
-            return singleArray;
-        }
+        public static unsafe NativeArray<T> CreateNativeArrayFrom<T>(T[] managedArray, Allocator allocator)
+            where T : unmanaged
+            => CreateNativeArrayFrom<T, T>(managedArray, allocator);
         
-        public static unsafe NativeArray<float3> GetNativeArrayFrom(Vector3[] managedArray, Allocator allocator)
+        public static unsafe NativeArray<TTo> CreateNativeArrayFrom<TFrom, TTo>(TFrom[] managedArray, Allocator allocator)
+            where TFrom : unmanaged
+            where TTo : struct
         {
-            var nativeArray = new NativeArray<float3>(managedArray.Length, allocator, NativeArrayOptions.UninitializedMemory);
+            var nativeArray = new NativeArray<TTo>(managedArray.Length, allocator, NativeArrayOptions.UninitializedMemory);
 
             fixed (void* managedPointer = managedArray)
             {
                 UnsafeUtility.MemCpy(
                     NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(nativeArray),
                     managedPointer,
-                    managedArray.Length * (long) UnsafeUtility.SizeOf<float3>()
+                    managedArray.Length * (long) UnsafeUtility.SizeOf<TTo>()
                 );
             }
             
             return nativeArray;
         }
-
-        public static unsafe void SetNativeArrayTo(NativeArray<float3> nativeArray, Vector3[] managedArray)
+        
+        public static unsafe void CopyNativeArrayTo<TFrom, TTo>(NativeArray<TFrom> nativeArray, TTo[] managedArray)
+            where TFrom : struct
+            where TTo : unmanaged
         {
             fixed (void* managedPointer = managedArray)
             {
                 UnsafeUtility.MemCpy(
                     managedPointer, 
                     NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(nativeArray),
-                    nativeArray.Length * (long) UnsafeUtility.SizeOf<float3>()
+                    nativeArray.Length * (long) UnsafeUtility.SizeOf<TFrom>()
                 );
             }
         }

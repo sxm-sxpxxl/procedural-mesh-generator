@@ -17,6 +17,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
         public Vector3[] Vertices { get; internal set; }
         public Vector3[] Normals { get; internal set; }
         public Vector2[] UV { get; internal set; }
+        public int[] Triangles => _triangles;
         
         internal int BackfaceAdjustedVerticesLength => withBackfaceCulling ? Vertices.Length : Vertices.Length / 2;
         
