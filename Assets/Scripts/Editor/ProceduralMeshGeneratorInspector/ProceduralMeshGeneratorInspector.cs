@@ -9,10 +9,10 @@ using Sxm.ProceduralMeshGenerator.Creation;
 using Sxm.ProceduralMeshGenerator.Modification;
 using Object = UnityEngine.Object;
 
-namespace Sxm.ProceduralMeshGenerator
+namespace Sxm.ProceduralMeshGenerator.Editor
 {
     [CustomEditor(typeof(ProceduralMeshGenerator))]
-    public class ProceduralMeshGeneratorInspector : Editor
+    public class ProceduralMeshGeneratorInspector : UnityEditor.Editor
     {
         [SerializeField] private VisualTreeAsset template;
         

@@ -5,7 +5,7 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Sxm.ProceduralMeshGenerator
+namespace Sxm.ProceduralMeshGenerator.Editor
 {
     [CustomPropertyDrawer(typeof(ProceduralMeshGenerator.AppliedMeshModifier))]
     public sealed class AppliedMeshModifierPropertyDrawer : PropertyDrawer

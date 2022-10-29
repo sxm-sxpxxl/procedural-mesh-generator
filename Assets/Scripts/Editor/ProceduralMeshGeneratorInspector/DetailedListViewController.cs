@@ -7,7 +7,7 @@ using UnityEditor;
 using UnityEditor.UIElements;
 using Object = UnityEngine.Object;
 
-namespace Sxm.ProceduralMeshGenerator
+namespace Sxm.ProceduralMeshGenerator.Editor
 {
     public sealed class DetailedListViewController<TTargetType> where TTargetType : Component
     {

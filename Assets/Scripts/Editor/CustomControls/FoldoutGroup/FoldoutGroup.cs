@@ -1,87 +1,91 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq.Expressions;
+﻿using System.IO;
 using UnityEditor;
-using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Sxm.ProceduralMeshGenerator
+namespace Sxm.ProceduralMeshGenerator.Editor
 {
+    // https://forum.unity.com/threads/uxmltraits-and-custom-attributes-resetting-in-inspector.966215/#post-6311601
     public sealed class FoldoutGroup : VisualElement
     {
         public new class UxmlFactory : UxmlFactory<FoldoutGroup, UxmlTraits> { }
 
         public new class UxmlTraits : VisualElement.UxmlTraits
         {
-            private UxmlStringAttributeDescription _labelAttribute = new UxmlStringAttributeDescription()
+            private readonly UxmlStringAttributeDescription _labelAttribute = new UxmlStringAttributeDescription()
             {
-                name = "Label",
+                name = "label",
                 defaultValue = "Foldout label"
             };
             
-            private UxmlBoolAttributeDescription _expandedAttribute = new UxmlBoolAttributeDescription
+            private readonly UxmlBoolAttributeDescription _expandedAttribute = new UxmlBoolAttributeDescription
             {
-                name = "Expanded",
+                name = "expanded",
                 defaultValue = true
             };
 
             public override void Init(VisualElement visualElement, IUxmlAttributes bag, CreationContext context)
             {
                 base.Init(visualElement, bag, context);
-
+                
                 var target = visualElement as FoldoutGroup;
                 target.Label = _labelAttribute.GetValueFromBag(bag, context);
                 target.Expanded = _expandedAttribute.GetValueFromBag(bag, context);
             }
         }
-
+        
         private static readonly string FoldoutGroupClassName = "foldout-group";
         private static readonly string ContentName = "content";
-
-        private Toggle _toggle;
-        private VisualElement _content;
         
+        private readonly Toggle _toggle;
+        private readonly VisualElement _content;
         private string _label;
         private bool _expanded;
 
-        public override VisualElement contentContainer => _content;
-        
-        private bool Expanded
-        {
-            get => _expanded;
-            set => _toggle.value = _expanded = value;
-        }
-        
-        private string Label
+        public string Label
         {
             get => _label;
-            set => _toggle.label = _label = value;
+            set
+            {
+                _label = value;
+                _toggle.label = _label;
+            }
         }
 
+        public bool Expanded
+        {
+            get => _expanded;
+            set
+            {
+                _expanded = value;
+                _toggle.SetValueWithoutNotify(_expanded);
+                _content.SetDisplay(_expanded);
+            }
+        }
+        
+        public override VisualElement contentContainer => _content;
+        
         public FoldoutGroup()
         {
             _toggle = new Toggle();
-            _toggle.RegisterCallback<ChangeEvent<bool>>(evt => OnToggleChange(evt));
+            _toggle.RegisterCallback<ChangeEvent<bool>>(OnToggleChange);
             _toggle.AddToClassList("foldout-group__toggle");
             hierarchy.Add(_toggle);
             
             _content = new VisualElement { name = ContentName };
             hierarchy.Add(_content);
-
+            
             AddToClassList(FoldoutGroupClassName);
-
+            
             var relativePath = AssetDatabaseUtils.GetAssetPathFor(nameof(FoldoutGroup), "Assets/Scripts");
             var ussPath = Path.ChangeExtension(relativePath, "uss");
-
+            
             StyleSheet asset = AssetDatabase.LoadAssetAtPath<StyleSheet>(ussPath);
             styleSheets.Add(asset);
         }
-
+        
         private static void OnToggleChange(ChangeEvent<bool> evt)
         {
-            var content = (evt.currentTarget as VisualElement).parent.Q<VisualElement>(ContentName);
-            content.style.display = new StyleEnum<DisplayStyle>(evt.newValue ? DisplayStyle.Flex : DisplayStyle.None);
-            evt.StopPropagation();
+            ((evt.currentTarget as VisualElement).parent as FoldoutGroup).Expanded = evt.newValue;
         }
     }
 }

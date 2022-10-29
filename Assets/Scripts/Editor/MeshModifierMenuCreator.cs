@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEditor;
 
-namespace Sxm.ProceduralMeshGenerator
+namespace Sxm.ProceduralMeshGenerator.Editor
 {
     public static class MeshModifierMenuCreator
     {
