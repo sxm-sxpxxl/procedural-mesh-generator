@@ -44,13 +44,22 @@ namespace Sxm.ProceduralMeshGenerator
                 clearButton: _root.Q<Button>("clear-button"),
                 cleanButton: _root.Q<Button>("clean-button"),
                 listView: _root.Q<ListView>("modifiers"),
-                selectedTargetField: _root.Q<ObjectField>("selected-modifier"),
+                selectedItemPropertyField: _root.Q<PropertyField>("selected-modifier"),
                 targetDetailsContainer: _root.Q<VisualElement>("selected-modifier-container"),
                 getTargetProperty: GetTargetPropertyForMeshModifier,
-                setTargetForItemProperty: SetMeshModifierProperty
+                setTargetForItemProperty: SetMeshModifierProperty,
+                initialSelectedIndex: GetSelectedModifierIndexProperty().intValue
             );
+
+            _detailedListViewController.OnSelectedItemIndexChanged += OnSelectedItemIndexChanged;
             
             return _root;
+        }
+
+        private void OnSelectedItemIndexChanged(int index)
+        {
+            GetSelectedModifierIndexProperty().intValue = index;
+            serializedObject.ApplyModifiedProperties();
         }
 
         private static void SetMeshModifierProperty(SerializedProperty meshModifierProperty, Object meshModifier)
@@ -59,6 +68,9 @@ namespace Sxm.ProceduralMeshGenerator
             GetActivePropertyForMeshModifier(meshModifierProperty).boolValue = true;
             GetTargetPropertyForMeshModifier(meshModifierProperty).objectReferenceValue = meshModifier;
         }
+
+        private SerializedProperty GetSelectedModifierIndexProperty() =>
+            serializedObject.FindProperty("selectedModifierIndex");
         
         private static SerializedProperty GetActivePropertyForMeshModifier(SerializedProperty meshModifierProperty) =>
             meshModifierProperty.FindPropertyRelative("isActive");

@@ -38,6 +38,7 @@ namespace Sxm.ProceduralMeshGenerator
         [SerializeField] private int resolution = 1;
         
         [SerializeField] private List<AppliedMeshModifier> appliedModifiers;
+        [SerializeField] private int selectedModifierIndex = -1;
         
         private MeshFilter _meshFilter;
         private readonly MeshCreatorContext _meshCreatorContext = new MeshCreatorContext();
@@ -49,11 +50,21 @@ namespace Sxm.ProceduralMeshGenerator
             { MeshType.Sphere, "Procedural Sphere" }
         };
 
+        private AppliedMeshModifier SelectedModifier =>
+            selectedModifierIndex >= 0 && selectedModifierIndex < appliedModifiers.Count
+                ? appliedModifiers[selectedModifierIndex]
+                : null;
         private MeshFilter MeshFilter => _meshFilter ? _meshFilter : GetComponent<MeshFilter>();
         
         private void OnDrawGizmos()
         {
             _meshCreatorContext.DrawDebug(transform, debugData);
+            
+            var selectedModifier = SelectedModifier;
+            if (selectedModifier != null && selectedModifier.Target != null && selectedModifier.IsActive)
+            {
+                selectedModifier.Target.DebugDraw();
+            }
         }
 
         private void Awake()

@@ -25,8 +25,8 @@ namespace Sxm.ProceduralMeshGenerator.Modification
                 innerRadius = outerRadius;
             }
         }
-        
-        protected override void OnDrawGizmosSelected()
+
+        public override void DebugDraw()
         {
             float t = ScaledTime;
             float dt = (outerRadius - innerRadius) / DebugVerticesResolution;

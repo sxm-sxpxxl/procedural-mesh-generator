@@ -5,19 +5,22 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor;
 using UnityEditor.UIElements;
-using Sxm.ProceduralMeshGenerator.Modification;
 using Object = UnityEngine.Object;
 
 namespace Sxm.ProceduralMeshGenerator
 {
-    public sealed class DetailedListViewController<TItemType> where TItemType : Component
+    public sealed class DetailedListViewController<TTargetType> where TTargetType : Component
     {
+        private const int NullIndex = -1;
+        
         private static readonly string ScriptPropertyName = "m_Script";
         private static readonly KeyCode RemoveKey = KeyCode.Delete;
         
+        public event Action<int> OnSelectedItemIndexChanged = delegate { };
+        
         private SerializedObject _parentSerializedObject;
         private ListView _listView;
-        private ObjectField _selectedTargetField;
+        private PropertyField _selectedItemPropertyField;
         private VisualElement _targetDetailsContainer;
         private Func<SerializedProperty, SerializedProperty> _getTargetProperty;
         private Action<SerializedProperty, Object> _setTargetForItemProperty;
@@ -30,15 +33,16 @@ namespace Sxm.ProceduralMeshGenerator
             Button clearButton,
             Button cleanButton,
             ListView listView,
-            ObjectField selectedTargetField,
+            PropertyField selectedItemPropertyField,
             VisualElement targetDetailsContainer,
             Func<SerializedProperty, SerializedProperty> getTargetProperty,
-            Action<SerializedProperty, Object> setTargetForItemProperty
+            Action<SerializedProperty, Object> setTargetForItemProperty,
+            int initialSelectedIndex = NullIndex
         )
         {
             _parentSerializedObject = parentSerializedObject;
             _listView = listView;
-            _selectedTargetField = selectedTargetField;
+            _selectedItemPropertyField = selectedItemPropertyField;
             _targetDetailsContainer = targetDetailsContainer;
             _getTargetProperty = getTargetProperty;
             _setTargetForItemProperty = setTargetForItemProperty;
@@ -56,16 +60,20 @@ namespace Sxm.ProceduralMeshGenerator
             _listView.itemsRemoved += OnItemRemoved;
             _listView.RegisterCallback<KeyDownEvent>(OnRemoveKeyDown);
             
-            _selectedTargetField.objectType = typeof(TItemType);
-            _selectedTargetField.SetEnabled(false);
+            _selectedItemPropertyField.SetEnabled(false);
+            _selectedItemPropertyField.RegisterCallback<AttachToPanelEvent>(evt =>
+            {
+                SetSelectionItemByIndex(initialSelectedIndex);
+            });
         }
         
         private void OnClearButtonClicked(ClickEvent evt)
         {
             ListProperty.ClearArray();
-            
             _parentSerializedObject.ApplyModifiedProperties();
+            
             _listView.RefreshItems();
+            ResetSelectedItem();
         }
         
         private void OnCleanButtonClicked(ClickEvent evt)
@@ -85,7 +93,7 @@ namespace Sxm.ProceduralMeshGenerator
         
         private void OnDragUpdated(DragUpdatedEvent evt)
         {
-            if (IsGameObjectWithComponentDragged(out TItemType _) == false)
+            if (IsGameObjectWithComponentDragged(out TTargetType _) == false)
             {
                 return;
             }
@@ -95,7 +103,7 @@ namespace Sxm.ProceduralMeshGenerator
         
         private void OnDragPerformed(DragPerformEvent evt)
         {
-            if (IsGameObjectWithComponentDragged(out TItemType modifier) == false)
+            if (IsGameObjectWithComponentDragged(out TTargetType modifier) == false)
             {
                 return;
             }
@@ -113,7 +121,9 @@ namespace Sxm.ProceduralMeshGenerator
             }
                 
             var selectionItemProperty = items[0] as SerializedProperty;
-            RebindSelectedTargetFor(selectionItemProperty);
+            RebindSelectedItem(selectionItemProperty);
+            
+            OnSelectedItemIndexChanged.Invoke(_listView.selectedIndex);
         }
         
         private void OnItemReordered(int oldIndex, int newIndex)
@@ -201,35 +211,36 @@ namespace Sxm.ProceduralMeshGenerator
             SerializedProperty selectionItemProperty = ListProperty.GetArrayElementAtIndex(index);
             
             _listView.SetSelectionWithoutNotify(new int[] { index });
-            RebindSelectedTargetFor(selectionItemProperty);
+            RebindSelectedItem(selectionItemProperty);
+
+            OnSelectedItemIndexChanged.Invoke(index);
         }
         
-        private void RebindSelectedTargetFor(SerializedProperty itemProperty)
+        private void RebindSelectedItem(SerializedProperty itemProperty)
         {
-            var targetProperty = _getTargetProperty.Invoke(itemProperty);
+            _selectedItemPropertyField.Unbind();
+            _selectedItemPropertyField.BindProperty(itemProperty);
             
-            _selectedTargetField.Unbind();
-            _selectedTargetField.BindProperty(targetProperty);
-            
-            _selectedTargetField.RegisterCallback<ChangeEvent<Object>>(evt =>
+            _selectedItemPropertyField.Q<ObjectField>().RegisterCallback<ChangeEvent<Object>>(evt =>
             {
                 UpdateTargetDetails(evt.newValue);
             });
             
+            var targetProperty = _getTargetProperty.Invoke(itemProperty);
             UpdateTargetDetails(targetProperty.objectReferenceValue);
         }
         
-        private void UpdateTargetDetails(Object item)
+        private void UpdateTargetDetails(Object newTarget)
         {
             _targetDetailsContainer.Clear();
-            if (item == null)
+            if (newTarget == null)
             {
                 return;
             }
             
-            var serializedItem = new SerializedObject(item);
-            var currentChildProperty = serializedItem.GetIterator();
-
+            var serializedTarget = new SerializedObject(newTarget);
+            var currentChildProperty = serializedTarget.GetIterator();
+            
             while (currentChildProperty.NextVisible(enterChildren: true))
             {
                 if (currentChildProperty.name == ScriptPropertyName)
@@ -246,8 +257,10 @@ namespace Sxm.ProceduralMeshGenerator
         
         private void ResetSelectedItem()
         {
-            _selectedTargetField.Unbind();
-            _selectedTargetField.value = null;
+            _selectedItemPropertyField.Unbind();
+            _selectedItemPropertyField.Q<ObjectField>().value = null;
+            
+            OnSelectedItemIndexChanged.Invoke(NullIndex);
         }
         
         private static bool IsGameObjectWithComponentDragged<TComponent>(out TComponent result) where TComponent : Component

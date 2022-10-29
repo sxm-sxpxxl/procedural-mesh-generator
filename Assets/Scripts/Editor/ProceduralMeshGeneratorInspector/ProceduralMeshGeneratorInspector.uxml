@@ -30,7 +30,7 @@
     <ui:ListView header-title="Modifiers" show-border="true" binding-path="appliedModifiers" show-add-remove-footer="true" virtualization-method="DynamicHeight" selection-type="Single" reorderable="true" reorder-mode="Animated" show-bound-collection-size="false" name="modifiers" show-foldout-header="true" />
     <ui:VisualElement name="selected-modifier-label" style="flex-direction: row; margin-top: 8px; margin-right: 6px;">
         <ui:Label text="Selected modifier" display-tooltip-when-elided="true" style="margin-right: 16px; -unity-text-align: middle-left; -unity-font-style: bold;" />
-        <uie:ObjectField name="selected-modifier" style="flex-grow: 1;" />
+        <uie:PropertyField name="selected-modifier" style="flex-grow: 1;" />
     </ui:VisualElement>
     <ui:VisualElement name="selected-modifier-container" class="hidden-box" />
     <Sxm.ProceduralMeshGenerator.FoldoutGroup Label="Debug Options" name="debug-options" style="margin-left: -16px; margin-right: -8px; margin-top: 8px; margin-bottom: 8px;">

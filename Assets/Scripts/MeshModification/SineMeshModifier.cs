@@ -14,8 +14,8 @@ namespace Sxm.ProceduralMeshGenerator.Modification
         [SerializeField, Min(0f)] private float speed = 0f;
     
         private float ScaledTime => speed * Time.time;
-    
-        protected override void OnDrawGizmosSelected()
+
+        public override void DebugDraw()
         {
             float t = ScaledTime;
             const float dt = DebugDistanceBetweenVertices;

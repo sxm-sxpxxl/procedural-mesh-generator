@@ -40,8 +40,8 @@ namespace Sxm.ProceduralMeshGenerator.Modification
                 return _selfTransform;
             }
         }
-        
-        protected abstract void OnDrawGizmosSelected();
+
+        public abstract void DebugDraw();
         
         public void Modify(InterstitialMeshData meshData)
         {
