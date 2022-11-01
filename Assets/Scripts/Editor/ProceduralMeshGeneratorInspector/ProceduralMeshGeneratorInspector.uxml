@@ -33,7 +33,7 @@
         <uie:PropertyField name="selected-modifier" style="flex-grow: 1;" />
     </ui:VisualElement>
     <ui:VisualElement name="selected-modifier-container" class="hidden-box" />
-    <Sxm.ProceduralMeshGenerator.Editor.FoldoutGroup Label="Debug Options" Expanded="false" name="debug-options" label="Debug Options" expanded="false" class="foldout-fit">
+    <Sxm.ProceduralMeshGenerator.Editor.FoldoutGroup Label="Debug Options" Expanded="false" name="debug-options" label="Debug Options" expanded="true" class="foldout-fit" style="margin-top: 8px;">
         <ui:BindableElement binding-path="debugData" name="vertices-box" class="box">
             <ui:Toggle label="Show Vertices" name="show-vertices" binding-path="areVerticesShowed" class="header-toggle" />
             <ui:VisualElement name="vertices-options" class="hidden-box" style="align-items: flex-start;">
@@ -62,5 +62,39 @@
                 <uie:ColorField label="Color" value="RGBA(0.000, 1.000, 1.000, 1.000)" name="bounds-color" binding-path="boundsColor" style="flex-grow: 1;" />
             </ui:VisualElement>
         </ui:BindableElement>
+    </Sxm.ProceduralMeshGenerator.Editor.FoldoutGroup>
+    <Sxm.ProceduralMeshGenerator.Editor.FoldoutGroup label="Debug Info" name="debug-info" class="foldout-fit" style="align-items: flex-start;">
+        <ui:VisualElement name="vertices" style="margin-bottom: 4px; margin-left: 8px;">
+            <ui:VisualElement name="title" class="box" style="flex-direction: row; align-items: center; margin-bottom: 4px;">
+                <ui:Label text="Vertices:" display-tooltip-when-elided="true" style="-unity-font-style: normal;" />
+                <ui:Label text="None" display-tooltip-when-elided="true" name="vertices-size" style="-unity-font-style: bold; position: absolute; left: 64px;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="data" class="hidden-box">
+                <ui:VisualElement name="position" style="flex-direction: row;">
+                    <ui:Label text="Position" display-tooltip-when-elided="true" />
+                    <ui:Label text="Float32 x 3 (12 bytes)" display-tooltip-when-elided="true" name="vertex-position" style="position: absolute; left: 64px;" />
+                </ui:VisualElement>
+                <ui:VisualElement name="normal" style="flex-direction: row;">
+                    <ui:Label text="Normal" display-tooltip-when-elided="true" />
+                    <ui:Label text="Float32 x 3 (12 bytes)" display-tooltip-when-elided="true" name="vertex-normal" style="position: absolute; left: 64px;" />
+                </ui:VisualElement>
+                <ui:VisualElement name="uv" style="flex-direction: row;">
+                    <ui:Label text="UV" display-tooltip-when-elided="true" />
+                    <ui:Label text="Float32 x 2 (8 bytes)" display-tooltip-when-elided="true" name="vertex-uv" style="position: absolute; left: 64px;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="triangles" style="margin-bottom: 4px; margin-left: 8px;">
+            <ui:VisualElement name="title" class="box" style="flex-direction: row; align-items: center;">
+                <ui:Label text="Triangles:" display-tooltip-when-elided="true" style="-unity-font-style: normal;" />
+                <ui:Label text="None" display-tooltip-when-elided="true" name="triangles-size" style="-unity-font-style: bold; position: absolute; left: 64px;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="bounds" style="margin-left: 8px; margin-bottom: 4px;">
+            <ui:VisualElement name="title" class="box" style="flex-direction: row; align-items: center;">
+                <ui:Label text="Bounds:" display-tooltip-when-elided="true" style="-unity-font-style: normal;" />
+                <ui:Label text="None" display-tooltip-when-elided="true" name="bounds-value" style="-unity-font-style: bold; position: absolute; left: 64px;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
     </Sxm.ProceduralMeshGenerator.Editor.FoldoutGroup>
 </ui:UXML>

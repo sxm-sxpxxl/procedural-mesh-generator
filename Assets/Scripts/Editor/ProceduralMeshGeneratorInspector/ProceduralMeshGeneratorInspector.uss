@@ -54,5 +54,4 @@
 .foldout-fit {
     margin-left: -14px;
     margin-right: -6px;
-    margin-top: 8px;
 }

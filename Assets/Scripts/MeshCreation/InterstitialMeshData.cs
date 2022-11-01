@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Sxm.ProceduralMeshGenerator.Creation
 {
@@ -19,6 +20,29 @@ namespace Sxm.ProceduralMeshGenerator.Creation
         public Vector2[] UV { get; internal set; }
         public int[] Triangles => _triangles;
         
+        public string VerticesInfo
+        {
+            get
+            {
+                // Position, Normal, UV
+                const int channels = 3 + 3 + 2;
+            
+                (float size, string metric) = ((float) (channels * Vertices.Length * sizeof(float))).AutoConvertNormalValue();
+                return $"{Vertices.Length} ({size:F1} {metric}b)";
+            }
+        }
+
+        public string TrianglesInfo
+        {
+            get
+            {
+                (float size, string metric) = ((float) (Triangles.Length * sizeof(UInt16))).AutoConvertNormalValue();
+                return $"{Triangles.Length}, UInt16 format ({size:F1} {metric}b)";
+            }
+        }
+        
+        public string BoundsInfo => $"center: {Bounds.center} size: {Bounds.size}";
+        
         internal int BackfaceAdjustedVerticesLength => withBackfaceCulling ? Vertices.Length : Vertices.Length / 2;
         
         public Mesh MeshInstance => new Mesh
@@ -28,7 +52,8 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             vertices = Vertices,
             normals = Normals,
             uv = UV,
-            triangles = _triangles
+            triangles = _triangles,
+            indexFormat = IndexFormat.UInt16
         };
         
         internal InterstitialMeshData(

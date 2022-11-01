@@ -25,6 +25,8 @@ namespace Sxm.ProceduralMeshGenerator
             }
         }
         
+        public event Action OnMeshUpdated = delegate { };
+        
         [SerializeField] private MeshCreatorContext.DebugData debugData;
         [SerializeField] private MeshType meshType = MeshType.Plane;
         [SerializeField] private Plane planeAxis = Plane.XZ;
@@ -42,6 +44,7 @@ namespace Sxm.ProceduralMeshGenerator
         
         private MeshFilter _meshFilter;
         private readonly MeshCreatorContext _meshCreatorContext = new MeshCreatorContext();
+        private InterstitialMeshData _meshData;
         
         private static readonly Dictionary<MeshType, string> MeshTypeNames = new Dictionary<MeshType, string>
         {
@@ -49,12 +52,21 @@ namespace Sxm.ProceduralMeshGenerator
             { MeshType.Cube, "Procedural Cube" },
             { MeshType.Sphere, "Procedural Sphere" }
         };
-
+        
         private AppliedMeshModifier SelectedModifier =>
             selectedModifierIndex >= 0 && selectedModifierIndex < appliedModifiers.Count
                 ? appliedModifiers[selectedModifierIndex]
                 : null;
         private MeshFilter MeshFilter => _meshFilter ? _meshFilter : GetComponent<MeshFilter>();
+        
+#if UNITY_EDITOR
+        private const string NoneValue = "None";
+        
+        public string VerticesDebugInfo => _meshData?.VerticesInfo ?? NoneValue;
+        
+        public string TrianglesDebugInfo => _meshData?.TrianglesInfo ?? NoneValue;
+        
+        public string BoundsDebugInfo => _meshData?.BoundsInfo ?? NoneValue;
         
         private void OnDrawGizmos()
         {
@@ -66,7 +78,8 @@ namespace Sxm.ProceduralMeshGenerator
                 selectedModifier.Target.DebugDraw();
             }
         }
-
+#endif
+        
         private void Awake()
         {
             _meshFilter = GetComponent<MeshFilter>();
@@ -74,11 +87,13 @@ namespace Sxm.ProceduralMeshGenerator
         
         private void OnRenderObject()
         {
-            var meshData = CreateMeshByType();
-            ModifyMeshVertices(meshData);
+            _meshData = CreateMeshByType();
+            ModifyMeshVertices(_meshData);
             
             var meshFilter = MeshFilter;
-            meshFilter.sharedMesh = meshData.MeshInstance;
+            meshFilter.sharedMesh = _meshData.MeshInstance;
+
+            OnMeshUpdated.Invoke();
         }
         
         public void AddModifier(BaseMeshModifier modifier)

@@ -15,7 +15,8 @@ namespace Sxm.ProceduralMeshGenerator.Editor
     public class ProceduralMeshGeneratorInspector : UnityEditor.Editor
     {
         [SerializeField] private VisualTreeAsset template;
-        
+
+        private ProceduralMeshGenerator _target;
         private VisualElement _root;
         private DetailedListViewController<BaseMeshModifier> _detailedListViewController;
 
@@ -50,25 +51,35 @@ namespace Sxm.ProceduralMeshGenerator.Editor
                 setTargetForItemProperty: SetMeshModifierProperty,
                 initialSelectedIndex: GetSelectedModifierIndexProperty().intValue
             );
-
+            
             _detailedListViewController.OnSelectedItemIndexChanged += OnSelectedItemIndexChanged;
+
+            _target = target as ProceduralMeshGenerator;
+            _target.OnMeshUpdated += OnMeshUpdated;
             
             return _root;
         }
 
+        private void OnMeshUpdated()
+        {
+            _root.Q<Label>("vertices-size").text = _target.VerticesDebugInfo;
+            _root.Q<Label>("triangles-size").text = _target.TrianglesDebugInfo;
+            _root.Q<Label>("bounds-value").text = _target.BoundsDebugInfo;
+        }
+        
         private void OnSelectedItemIndexChanged(int index)
         {
             GetSelectedModifierIndexProperty().intValue = index;
             serializedObject.ApplyModifiedProperties();
         }
-
+        
         private static void SetMeshModifierProperty(SerializedProperty meshModifierProperty, Object meshModifier)
         {
             Assert.IsTrue(meshModifier is BaseMeshModifier or null);
             GetActivePropertyForMeshModifier(meshModifierProperty).boolValue = true;
             GetTargetPropertyForMeshModifier(meshModifierProperty).objectReferenceValue = meshModifier;
         }
-
+        
         private SerializedProperty GetSelectedModifierIndexProperty() =>
             serializedObject.FindProperty("selectedModifierIndex");
         
