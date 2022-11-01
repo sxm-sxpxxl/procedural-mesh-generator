@@ -26,7 +26,18 @@ namespace Sxm.ProceduralMeshGenerator.Editor
             ("cube-type", MeshType.Cube),
             ("sphere-type", MeshType.Sphere)
         };
-        
+
+        private void OnEnable()
+        {
+            _target = target as ProceduralMeshGenerator;
+            _target.OnMeshUpdated += OnMeshUpdated;
+        }
+
+        private void OnDisable()
+        {
+            _target.OnMeshUpdated -= OnMeshUpdated;
+        }
+
         public override VisualElement CreateInspectorGUI()
         {
             _root = new VisualElement();
@@ -53,9 +64,6 @@ namespace Sxm.ProceduralMeshGenerator.Editor
             );
             
             _detailedListViewController.OnSelectedItemIndexChanged += OnSelectedItemIndexChanged;
-
-            _target = target as ProceduralMeshGenerator;
-            _target.OnMeshUpdated += OnMeshUpdated;
             
             return _root;
         }
