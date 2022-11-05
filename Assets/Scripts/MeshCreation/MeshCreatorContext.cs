@@ -35,6 +35,11 @@ namespace Sxm.ProceduralMeshGenerator.Creation
         
         public void DrawDebug(Transform relativeTransform, DebugData debugData)
         {
+            if (_meshCreator == null)
+            {
+                return;
+            }
+            
             _data = debugData;
             var meshData = _meshCreator.GetLastMeshData();
             

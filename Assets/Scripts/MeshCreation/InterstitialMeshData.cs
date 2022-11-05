@@ -24,7 +24,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
         {
             get
             {
-                // Position, Normal, UV
+                // Position: Vector3, Normal: Vector3, UV: Vector2
                 const int channels = 3 + 3 + 2;
             
                 (float size, string metric) = ((float) (channels * Vertices.Length * sizeof(float))).AutoConvertNormalValue();

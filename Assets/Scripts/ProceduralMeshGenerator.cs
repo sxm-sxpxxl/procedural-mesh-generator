@@ -7,7 +7,7 @@ using Sxm.ProceduralMeshGenerator.Modification;
 namespace Sxm.ProceduralMeshGenerator
 {
     [RequireComponent(typeof(MeshFilter)), RequireComponent(typeof(MeshRenderer))]
-    [DisallowMultipleComponent, ExecuteAlways]
+    [DisallowMultipleComponent, ExecuteInEditMode]
     public sealed class ProceduralMeshGenerator : MonoBehaviour
     {
         [Serializable]
@@ -57,7 +57,6 @@ namespace Sxm.ProceduralMeshGenerator
             selectedModifierIndex >= 0 && selectedModifierIndex < appliedModifiers.Count
                 ? appliedModifiers[selectedModifierIndex]
                 : null;
-        private MeshFilter MeshFilter => _meshFilter ? _meshFilter : GetComponent<MeshFilter>();
         
 #if UNITY_EDITOR
         private const string NoneValue = "None";
@@ -84,15 +83,13 @@ namespace Sxm.ProceduralMeshGenerator
         {
             _meshFilter = GetComponent<MeshFilter>();
         }
-        
-        private void OnRenderObject()
+
+        private void Update()
         {
             _meshData = CreateMeshByType();
             ModifyMeshVertices(_meshData);
             
-            var meshFilter = MeshFilter;
-            meshFilter.sharedMesh = _meshData.MeshInstance;
-
+            _meshFilter.sharedMesh = _meshData.MeshInstance;
             OnMeshUpdated.Invoke();
         }
         
@@ -142,7 +139,7 @@ namespace Sxm.ProceduralMeshGenerator
                 {
                     continue;
                 }
-
+                
                 appliedModifiers[i].Target.Modify(meshData);
             }
         }

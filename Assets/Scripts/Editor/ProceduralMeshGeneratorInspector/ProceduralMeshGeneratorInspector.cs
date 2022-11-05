@@ -70,6 +70,11 @@ namespace Sxm.ProceduralMeshGenerator.Editor
 
         private void OnMeshUpdated()
         {
+            if (_root == null)
+            {
+                return;
+            }
+            
             _root.Q<Label>("vertices-size").text = _target.VerticesDebugInfo;
             _root.Q<Label>("triangles-size").text = _target.TrianglesDebugInfo;
             _root.Q<Label>("bounds-value").text = _target.BoundsDebugInfo;
