@@ -19,6 +19,7 @@
     <uie:Vector3Field label="Size" name="size-3d" binding-path="size3d" />
     <uie:Vector3Field label="Offset" name="offset" binding-path="offset" />
     <ui:SliderInt picking-mode="Ignore" label="Resolution" value="42" high-value="32" name="resolution" low-value="1" show-input-field="true" binding-path="resolution" />
+    <uie:EnumField label="Collider Type" value="Center" name="collider-type" binding-path="colliderType" />
     <ui:Label text="Modification" display-tooltip-when-elided="true" name="modification" class="header-text" />
     <ui:VisualElement name="modiers-controls" class="modifiers-controls" style="flex-direction: row; margin-bottom: 8px; align-items: auto;">
         <ui:VisualElement name="drag-and-drop-container" style="height: 20px; background-color: rgba(72, 72, 72, 0.5); flex-grow: 1; margin-right: 3px;">
@@ -33,7 +34,7 @@
         <uie:PropertyField name="selected-modifier" style="flex-grow: 1;" />
     </ui:VisualElement>
     <ui:VisualElement name="selected-modifier-container" class="hidden-box" />
-    <Sxm.ProceduralMeshGenerator.Editor.FoldoutGroup Label="Debug Options" Expanded="false" name="debug-options" label="Debug Options" expanded="true" class="foldout-fit" style="margin-top: 8px;">
+    <Sxm.ProceduralMeshGenerator.Editor.FoldoutGroup Label="Debug Options" Expanded="false" name="debug-options" label="Debug Options" expanded="false" class="foldout-fit" style="margin-top: 8px;">
         <ui:BindableElement binding-path="debugData" name="vertices-box" class="box">
             <ui:Toggle label="Show Vertices" name="show-vertices" binding-path="areVerticesShowed" class="header-toggle" />
             <ui:VisualElement name="vertices-options" class="hidden-box" style="align-items: flex-start;">
@@ -63,7 +64,7 @@
             </ui:VisualElement>
         </ui:BindableElement>
     </Sxm.ProceduralMeshGenerator.Editor.FoldoutGroup>
-    <Sxm.ProceduralMeshGenerator.Editor.FoldoutGroup label="Debug Info" name="debug-info" class="foldout-fit" style="align-items: flex-start;">
+    <Sxm.ProceduralMeshGenerator.Editor.FoldoutGroup label="Debug Info" name="debug-info" expanded="false" class="foldout-fit" style="align-items: flex-start;">
         <ui:VisualElement name="vertices" style="margin-bottom: 4px; margin-left: 8px;">
             <ui:VisualElement name="title" class="box" style="flex-direction: row; align-items: center; margin-bottom: 4px;">
                 <ui:Label text="Vertices:" display-tooltip-when-elided="true" style="-unity-font-style: normal;" />

@@ -39,19 +39,24 @@ namespace Sxm.ProceduralMeshGenerator
         [SerializeField] private Vector3 offset = Vector3.zero;
         [SerializeField] private int resolution = 1;
         
-        [SerializeField] private List<AppliedMeshModifier> appliedModifiers;
+        [SerializeField] private ColliderController.ColliderType colliderType = ColliderController.ColliderType.None;
+        [SerializeField, HideInInspector] private ColliderController colliderController = new();
+        
+        [SerializeField] private List<AppliedMeshModifier> appliedModifiers = new();
         [SerializeField] private int selectedModifierIndex = -1;
         
         private MeshFilter _meshFilter;
-        private readonly MeshCreatorContext _meshCreatorContext = new MeshCreatorContext();
         private InterstitialMeshData _meshData;
+        private readonly MeshCreatorContext _meshCreatorContext = new();
         
-        private static readonly Dictionary<MeshType, string> MeshTypeNames = new Dictionary<MeshType, string>
+        private static readonly Dictionary<MeshType, string> MeshTypeNames = new()
         {
             { MeshType.Plane, "Procedural Plane" },
             { MeshType.Cube, "Procedural Cube" },
             { MeshType.Sphere, "Procedural Sphere" }
         };
+        
+        private MeshFilter MeshFilter => _meshFilter ??= GetComponent<MeshFilter>();
         
         private AppliedMeshModifier SelectedModifier =>
             selectedModifierIndex >= 0 && selectedModifierIndex < appliedModifiers.Count
@@ -79,17 +84,14 @@ namespace Sxm.ProceduralMeshGenerator
         }
 #endif
         
-        private void Awake()
-        {
-            _meshFilter = GetComponent<MeshFilter>();
-        }
-
         private void Update()
         {
             _meshData = CreateMeshByType();
             ModifyMeshVertices(_meshData);
             
-            _meshFilter.sharedMesh = _meshData.MeshInstance;
+            colliderController.Set(gameObject, colliderType, _meshData);
+            
+            MeshFilter.sharedMesh = _meshData.MeshInstance;
             OnMeshUpdated.Invoke();
         }
         
