@@ -64,8 +64,14 @@ namespace Sxm.ProceduralMeshGenerator.Editor
             );
             
             _detailedListViewController.OnSelectedItemIndexChanged += OnSelectedItemIndexChanged;
+            _root.Q<Button>("export-button").clicked += OnExportButtonClicked;
             
             return _root;
+        }
+
+        private void OnExportButtonClicked()
+        {
+            _target.Export();
         }
 
         private void OnMeshUpdated()

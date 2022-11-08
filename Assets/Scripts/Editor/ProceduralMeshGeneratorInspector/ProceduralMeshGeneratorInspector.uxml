@@ -34,6 +34,9 @@
         <uie:PropertyField name="selected-modifier" style="flex-grow: 1;" />
     </ui:VisualElement>
     <ui:VisualElement name="selected-modifier-container" class="hidden-box" />
+    <ui:Label text="Export" display-tooltip-when-elided="true" name="export" class="header-text" />
+    <uie:EnumField label="File format" value="Center" name="mesh-export-extension" binding-path="meshExportExtension" />
+    <ui:Button text="Export" display-tooltip-when-elided="true" name="export-button" focusable="false" />
     <Sxm.ProceduralMeshGenerator.Editor.FoldoutGroup Label="Debug Options" Expanded="false" name="debug-options" label="Debug Options" expanded="false" class="foldout-fit" style="margin-top: 8px;">
         <ui:BindableElement binding-path="debugData" name="vertices-box" class="box">
             <ui:Toggle label="Show Vertices" name="show-vertices" binding-path="areVerticesShowed" class="header-toggle" />

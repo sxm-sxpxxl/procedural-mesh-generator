@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Sxm.ProceduralMeshGenerator.Creation;
+using Sxm.ProceduralMeshGenerator.Export;
 using Sxm.ProceduralMeshGenerator.Modification;
 
 namespace Sxm.ProceduralMeshGenerator
@@ -45,6 +46,8 @@ namespace Sxm.ProceduralMeshGenerator
         [SerializeField] private List<AppliedMeshModifier> appliedModifiers = new();
         [SerializeField] private int selectedModifierIndex = -1;
         
+        [SerializeField] private EditorMeshExporter.MeshExportExtension meshExportExtension;
+        
         private MeshFilter _meshFilter;
         private InterstitialMeshData _meshData;
         private readonly MeshCreatorContext _meshCreatorContext = new();
@@ -82,6 +85,11 @@ namespace Sxm.ProceduralMeshGenerator
                 selectedModifier.Target.DebugDraw();
             }
         }
+        
+        public void Export()
+        {
+            EditorMeshExporter.Export(_meshData.MeshInstance, isForwardFacing, meshExportExtension);
+        }
 #endif
         
         private void Update()
@@ -91,7 +99,8 @@ namespace Sxm.ProceduralMeshGenerator
             
             colliderController.Set(gameObject, colliderType, _meshData);
             
-            MeshFilter.sharedMesh = _meshData.MeshInstance;
+            // todo: fix nullable _meshFilter
+            GetComponent<MeshFilter>().sharedMesh = _meshData.MeshInstance;
             OnMeshUpdated.Invoke();
         }
         
