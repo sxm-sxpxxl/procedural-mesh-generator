@@ -22,7 +22,7 @@ namespace Sxm.ProceduralMeshGenerator.Editor
             
             var ussPath = Path.ChangeExtension(relativeScriptFilePath, "uss");
             var ussAsset = AssetDatabase.LoadAssetAtPath<StyleSheet>(ussPath);
-
+            
             if (ussAsset == null)
             {
                 throw new ArgumentException($"Style asset on path '{ussPath}' wasn't found.");
