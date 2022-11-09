@@ -1,0 +1,32 @@
+{
+  "name": "com.sxm.procedural-mesh-generator",
+  "version": "1.0.0",
+  "displayName": "Procedural Mesh Generator",
+  "description": "A simple Unity editor tool of procedural mesh generating, modifying and exporting.",
+  "unity": "2020.3",
+  "unityRelease": "17f1",
+  "license": "MIT",
+  "keywords": [
+    "unity",
+    "mesh",
+    "generator",
+    "modifiers",
+    "native",
+    "job-system",
+    "burst"
+  ],
+  "author": {
+    "name": "Alexey Pestov",
+    "url": "https://github.com/sxm-sxpxxl"
+  },
+  "samples": [
+    {
+      "displayName": "Base Sample",
+      "description": "Contains a sample scene with a customized procedural mesh generator.",
+      "path": "Samples/"
+    }
+  ],
+  "dependencies": {
+    "com.unity.collections": "1.2.4"
+  }
+}

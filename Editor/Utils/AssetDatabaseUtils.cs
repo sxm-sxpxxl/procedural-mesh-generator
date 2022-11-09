@@ -23,7 +23,7 @@ namespace Sxm.ProceduralMeshGenerator.Editor
 
         public static StyleSheet GetRootStylesFor(string scriptName)
         {
-            var relativePath = GetAssetPathFor(scriptName, "Assets/Scripts");
+            var relativePath = GetAssetPathFor(scriptName, "Assets/Editor");
             var ussPath = Path.ChangeExtension(relativePath, "uss");
             
             return AssetDatabase.LoadAssetAtPath<StyleSheet>(ussPath);

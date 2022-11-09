@@ -76,7 +76,7 @@ namespace Sxm.ProceduralMeshGenerator.Editor
             
             AddToClassList(FoldoutGroupClassName);
             
-            var relativePath = AssetDatabaseUtils.GetAssetPathFor(nameof(FoldoutGroup), "Assets/Scripts");
+            var relativePath = AssetDatabaseUtils.GetAssetPathFor(nameof(FoldoutGroup), "Assets/Editor");
             var ussPath = Path.ChangeExtension(relativePath, "uss");
             
             StyleSheet asset = AssetDatabase.LoadAssetAtPath<StyleSheet>(ussPath);
