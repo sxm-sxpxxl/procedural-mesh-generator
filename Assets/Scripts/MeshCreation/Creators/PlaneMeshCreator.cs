@@ -25,7 +25,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             SetTriangles(new FaceData[]
             {
                 new FaceData(
-                    RotationDirection.CW,
+                    WindingOrder.CW,
                     i => i,
                     () => request.isForwardFacing ? Vector3.back : Vector3.forward,
                     i => distanceBetweenVertices * new Vector2(
@@ -45,13 +45,13 @@ namespace Sxm.ProceduralMeshGenerator.Creation
         {
             var vertices = meshData.Vertices;
             var normals = meshData.Normals;
-                    
+            
             for (int i = 0; i < vertices.Length; i++)
             {
                 vertices[i] = (vertices[i] - offset).AsFor(axis, PlaneMeshRequest.VirtualAxis) + offset;
                 normals[i] = normals[i].AsFor(axis, PlaneMeshRequest.VirtualAxis);
             }
-
+            
             var bounds = meshData.Bounds;
             meshData.Bounds = new Bounds(
                 bounds.center.AsFor(axis, PlaneMeshRequest.VirtualAxis),

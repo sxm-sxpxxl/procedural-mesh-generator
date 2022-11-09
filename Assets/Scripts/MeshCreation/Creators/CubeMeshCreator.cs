@@ -73,7 +73,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 // Forward XY face
                 new FaceData
                 (
-                    RotationDirection.CCW,
+                    WindingOrder.CCW,
                     i => i,
                     () => Vector3.back,
                     i => new Vector2(
@@ -85,7 +85,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 // Backward XY face
                 new FaceData
                 (
-                    RotationDirection.CW,
+                    WindingOrder.CW,
                     i => i + resolution * quadVerticesCount,
                     () => Vector3.forward,
                     i => new Vector2(
@@ -97,7 +97,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 // Forward XZ face
                 new FaceData
                 (
-                    RotationDirection.CCW,
+                    WindingOrder.CCW,
                     i => i * edgeVerticesCount,
                     () => Vector3.down,
                     i => new Vector2(
@@ -109,7 +109,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 // Backward XZ face
                 new FaceData
                 (
-                    RotationDirection.CW,
+                    WindingOrder.CW,
                     i => i * edgeVerticesCount + resolution,
                     () => Vector3.up,
                     i => new Vector2(
@@ -121,7 +121,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 // Forward YZ face
                 new FaceData
                 (
-                    RotationDirection.CW,
+                    WindingOrder.CW,
                     i => i * edgeVerticesCount - (i % edgeVerticesCount) * resolution,
                     () => Vector3.left,
                     i => new Vector2(
@@ -133,7 +133,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 // Backward YZ face
                 new FaceData
                 (
-                    RotationDirection.CCW,
+                    WindingOrder.CCW,
                     i => (i + resolution) * edgeVerticesCount - (i % edgeVerticesCount) * resolution,
                     () => Vector3.right,
                     i => new Vector2(

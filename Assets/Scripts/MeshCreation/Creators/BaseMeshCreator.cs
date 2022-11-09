@@ -10,7 +10,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
         
         protected InterstitialMeshData meshData;
         
-        protected enum RotationDirection
+        protected enum WindingOrder
         {
             CW = 0, // Clockwise
             CCW = 1 // Counterclockwise
@@ -18,21 +18,21 @@ namespace Sxm.ProceduralMeshGenerator.Creation
 
         protected readonly struct FaceData
         {
-            public readonly RotationDirection traversalOrder;
+            public readonly WindingOrder WindingOrder;
             public readonly Func<int, int> getActualVertexGroupIndex;
             public readonly Func<Vector3> getFaceNormal;
             public readonly Func<int, Vector2> getUV;
             public readonly int vertexGroupOffset;
 
             public FaceData(
-                RotationDirection traversalOrder,
+                WindingOrder windingOrder,
                 Func<int, int> getActualVertexGroupIndex,
                 Func<Vector3> getFaceNormal,
                 Func<int, Vector2> getUV,
                 int vertexGroupOffset = 0
             )
             {
-                this.traversalOrder = traversalOrder;
+                this.WindingOrder = windingOrder;
                 this.getActualVertexGroupIndex = getActualVertexGroupIndex;
                 this.getFaceNormal = getFaceNormal;
                 this.getUV = getUV;
@@ -148,15 +148,15 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             for (int i = 0; i < faces.Length; i++)
             {
                 FaceData face = faces[i];
-                RotationDirection actualTraversalOrder = isForwardFacing
-                    ? face.traversalOrder
-                    : (RotationDirection) (1 - (int) face.traversalOrder);
+                WindingOrder actualWindingOrder = isForwardFacing
+                    ? face.WindingOrder
+                    : (WindingOrder) (1 - (int) face.WindingOrder);
 
                 SetFace(
                     indices,
                     startIndex: i * oneFaceIndicesCount,
                     meshData,
-                    actualTraversalOrder,
+                    actualWindingOrder,
                     face.getActualVertexGroupIndex,
                     face.getFaceNormal,
                     face.getUV,
@@ -170,7 +170,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                         indices,
                         startIndex: (i + 1) * oneFaceIndicesCount,
                         meshData,
-                        (RotationDirection) (1 - (int) actualTraversalOrder),
+                        (WindingOrder) (1 - (int) actualWindingOrder),
                         index => face.getActualVertexGroupIndex(index) + meshData.vertexGroups.Length / 2,
                         () => -face.getFaceNormal(),
                         face.getUV,
@@ -187,7 +187,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
             int[] indices,
             int startIndex,
             in InterstitialMeshData interstitialMeshData,
-            RotationDirection traversalOrder,
+            WindingOrder windingOrder,
             Func<int, int> getActualVertexGroupIndex,
             Func<Vector3> getFaceNormal,
             Func<int, Vector2> getUV,
@@ -212,11 +212,11 @@ namespace Sxm.ProceduralMeshGenerator.Creation
 
             for (int i = 0; i < faceIndicesCount; i += 6)
             {
-                tv1Indices[0] = ConvertToTriangleSpace(((int) traversalOrder) + initIndex);
-                tv1Indices[1] = ConvertToTriangleSpace((1 - (int) traversalOrder) + initIndex);
+                tv1Indices[0] = ConvertToTriangleSpace(((int) windingOrder) + initIndex);
+                tv1Indices[1] = ConvertToTriangleSpace((1 - (int) windingOrder) + initIndex);
                 tv1Indices[2] = ConvertToTriangleSpace(2 + initIndex);
-                tv2Indices[0] = ConvertToTriangleSpace((1 + 2 * (int) traversalOrder) + initIndex);
-                tv2Indices[1] = ConvertToTriangleSpace((3 - 2 * (int) traversalOrder) + initIndex);
+                tv2Indices[0] = ConvertToTriangleSpace((1 + 2 * (int) windingOrder) + initIndex);
+                tv2Indices[1] = ConvertToTriangleSpace((3 - 2 * (int) windingOrder) + initIndex);
                 tv2Indices[2] = tv1Indices[2];
 
                 // Conversion to unique indices rule:
@@ -225,7 +225,7 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 ut1Indices[0] = tv1Indices[0];                        // A
                 ut1Indices[1] = tv1Indices[1];                        // B
                 ut2Indices[0] = tv1Indices[2];                        // C
-                ut2Indices[1] = tv2Indices[1 - (int) traversalOrder]; // D
+                ut2Indices[1] = tv2Indices[1 - (int) windingOrder]; // D
                 
                 // Major transformations on vertex group indices to determine end vertex indices, and calculation its normals.
                 for (int j = 0; j < 4; j++)
@@ -263,8 +263,8 @@ namespace Sxm.ProceduralMeshGenerator.Creation
                 tv1Indices[0] = ut1Indices[0];
                 tv1Indices[1] = ut1Indices[1];
                 tv1Indices[2] = ut2Indices[0];
-                tv2Indices[0] = (traversalOrder == RotationDirection.CW ? ut1Indices : ut2Indices)[1];
-                tv2Indices[1] = (traversalOrder == RotationDirection.CW ? ut2Indices : ut1Indices)[1 - (int) traversalOrder];
+                tv2Indices[0] = (windingOrder == WindingOrder.CW ? ut1Indices : ut2Indices)[1];
+                tv2Indices[1] = (windingOrder == WindingOrder.CW ? ut2Indices : ut1Indices)[1 - (int) windingOrder];
                 tv2Indices[2] = ut2Indices[0];
                 
                 // Filling triangle indices for the quad.

@@ -2,7 +2,7 @@
 using UnityEditor;
 using UnityEngine.UIElements;
 
-namespace Sxm.ProceduralMeshGenerator
+namespace Sxm.ProceduralMeshGenerator.Editor
 {
     public static class VisualElementExtensions
     {

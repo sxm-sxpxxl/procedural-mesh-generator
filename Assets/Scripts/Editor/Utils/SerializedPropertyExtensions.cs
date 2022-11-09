@@ -5,7 +5,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-namespace Sxm.ProceduralMeshGenerator
+namespace Sxm.ProceduralMeshGenerator.Editor
 {
     public static class SerializedPropertyExtensions
     {

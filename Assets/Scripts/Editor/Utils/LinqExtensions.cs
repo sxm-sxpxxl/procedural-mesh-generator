@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Sxm.ProceduralMeshGenerator
+namespace Sxm.ProceduralMeshGenerator.Editor
 {
     public static class LinqExtensions
     {

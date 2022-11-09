@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Sxm.ProceduralMeshGenerator
+namespace Sxm.ProceduralMeshGenerator.Editor
 {
     public static class AssetDatabaseUtils
     {
