@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Sxm.ProceduralMeshGenerator.Creation;
-using Sxm.ProceduralMeshGenerator.Export;
 using Sxm.ProceduralMeshGenerator.Modification;
+using Sxm.ProceduralMeshGenerator.Export;
+#if UNITY_EDITOR
+using Sxm.ProceduralMeshGenerator.Export.Editor;
+#endif
 
 namespace Sxm.ProceduralMeshGenerator
 {
@@ -15,7 +18,7 @@ namespace Sxm.ProceduralMeshGenerator
         public sealed class AppliedMeshModifier
         {
             [SerializeField] private bool isActive = true;
-            [SerializeField] private BaseMeshModifier target = null;
+            [SerializeField] private BaseMeshModifier target;
 
             public bool IsActive => isActive;
             public BaseMeshModifier Target => target;
@@ -46,7 +49,7 @@ namespace Sxm.ProceduralMeshGenerator
         [SerializeField] private List<AppliedMeshModifier> appliedModifiers = new();
         [SerializeField] private int selectedModifierIndex = -1;
         
-        [SerializeField] private EditorMeshExporter.MeshExportExtension meshExportExtension;
+        [SerializeField] private MeshExportFormat meshExportFormat;
         
         private MeshFilter _meshFilter;
         private InterstitialMeshData _meshData;
@@ -59,7 +62,7 @@ namespace Sxm.ProceduralMeshGenerator
             { MeshType.Sphere, "Procedural Sphere" }
         };
         
-        private MeshFilter MeshFilter => _meshFilter ??= GetComponent<MeshFilter>();
+        private MeshFilter MeshFilter => _meshFilter == null ? _meshFilter = GetComponent<MeshFilter>() : _meshFilter;
         
         private AppliedMeshModifier SelectedModifier =>
             selectedModifierIndex >= 0 && selectedModifierIndex < appliedModifiers.Count
@@ -88,7 +91,7 @@ namespace Sxm.ProceduralMeshGenerator
         
         public void Export()
         {
-            EditorMeshExporter.Export(_meshData.MeshInstance, isForwardFacing, meshExportExtension);
+            EditorMeshExporter.Export(_meshData.MeshInstance, meshExportFormat);
         }
 #endif
         
@@ -98,9 +101,8 @@ namespace Sxm.ProceduralMeshGenerator
             ModifyMeshVertices(_meshData);
             
             colliderController.Set(gameObject, colliderType, _meshData);
+            MeshFilter.sharedMesh = _meshData.MeshInstance;
             
-            // todo: fix nullable _meshFilter
-            GetComponent<MeshFilter>().sharedMesh = _meshData.MeshInstance;
             OnMeshUpdated.Invoke();
         }
         

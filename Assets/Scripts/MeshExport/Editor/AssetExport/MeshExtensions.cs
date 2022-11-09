@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace Sxm.ProceduralMeshGenerator.Export
+namespace Sxm.ProceduralMeshGenerator.Export.Editor
 {
-    public static class MeshExtensions
+    internal static class MeshExtensions
     {
         public static void CopyTo(this Mesh fromMesh, Mesh toMesh)
         {

@@ -23,7 +23,7 @@
     <ui:Label text="Modification" display-tooltip-when-elided="true" name="modification" class="header-text" />
     <ui:VisualElement name="modiers-controls" class="modifiers-controls" style="flex-direction: row; margin-bottom: 8px; align-items: auto;">
         <ui:VisualElement name="drag-and-drop-container" style="height: 20px; background-color: rgba(72, 72, 72, 0.5); flex-grow: 1; margin-right: 3px;">
-            <ui:Label text="+ Drag &amp; Drop Modifiers Here" display-tooltip-when-elided="true" style="-unity-text-align: middle-center; flex-grow: 1; color: rgba(210, 210, 210, 0.75);" />
+            <ui:Label text="+ Drag &amp; Drop Modifiers Here" display-tooltip-when-elided="true" style="-unity-text-align: middle-center; flex-grow: 1; color: rgba(210, 210, 210, 0.75); white-space: normal;" />
         </ui:VisualElement>
         <ui:Button text="Clean" display-tooltip-when-elided="true" name="clean-button" focusable="false" style="background-color: rgba(0, 255, 0, 0.5); width: 50px;" />
         <ui:Button text="Clear" display-tooltip-when-elided="true" name="clear-button" focusable="false" style="background-color: rgba(255, 0, 0, 0.5); width: 50px;" />
@@ -35,9 +35,9 @@
     </ui:VisualElement>
     <ui:VisualElement name="selected-modifier-container" class="hidden-box" />
     <ui:Label text="Export" display-tooltip-when-elided="true" name="export" class="header-text" />
-    <uie:EnumField label="File format" value="Center" name="mesh-export-extension" binding-path="meshExportExtension" />
-    <ui:Button text="Export" display-tooltip-when-elided="true" name="export-button" focusable="false" />
-    <Sxm.ProceduralMeshGenerator.Editor.FoldoutGroup Label="Debug Options" Expanded="false" name="debug-options" label="Debug Options" expanded="false" class="foldout-fit" style="margin-top: 8px;">
+    <uie:EnumField label="File format" value="Center" name="mesh-export-format" binding-path="meshExportFormat" />
+    <ui:Button text="Export" display-tooltip-when-elided="true" name="export-button" focusable="false" style="margin-right: -2px;" />
+    <Sxm.ProceduralMeshGenerator.Editor.FoldoutGroup Label="Debug Options" Expanded="false" name="debug-options" label="Debug Options" expanded="false" class="foldout-fit" style="margin-top: 8px; margin-right: -4px; margin-left: -14px;">
         <ui:BindableElement binding-path="debugData" name="vertices-box" class="box">
             <ui:Toggle label="Show Vertices" name="show-vertices" binding-path="areVerticesShowed" class="header-toggle" />
             <ui:VisualElement name="vertices-options" class="hidden-box" style="align-items: flex-start;">
@@ -67,7 +67,7 @@
             </ui:VisualElement>
         </ui:BindableElement>
     </Sxm.ProceduralMeshGenerator.Editor.FoldoutGroup>
-    <Sxm.ProceduralMeshGenerator.Editor.FoldoutGroup label="Debug Info" name="debug-info" expanded="false" class="foldout-fit" style="align-items: flex-start;">
+    <Sxm.ProceduralMeshGenerator.Editor.FoldoutGroup label="Debug Info" name="debug-info" expanded="false" class="foldout-fit" style="align-items: flex-start; margin-left: -14px; margin-right: -4px;">
         <ui:VisualElement name="vertices" style="margin-bottom: 4px; margin-left: 8px;">
             <ui:VisualElement name="title" class="box" style="flex-direction: row; align-items: center; margin-bottom: 4px;">
                 <ui:Label text="Vertices:" display-tooltip-when-elided="true" style="-unity-font-style: normal;" />

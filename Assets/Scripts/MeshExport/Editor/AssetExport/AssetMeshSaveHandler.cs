@@ -2,7 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Sxm.ProceduralMeshGenerator.Export
+namespace Sxm.ProceduralMeshGenerator.Export.Editor
 {
     public sealed class AssetMeshSaveHandler : IMeshSaveHandler
     {
@@ -14,7 +14,7 @@ namespace Sxm.ProceduralMeshGenerator.Export
                 return;
             }
             
-            string relativePath = "Assets/" + absolutePath.Replace(Application.dataPath + "/", string.Empty);
+            string relativePath = AssetDatabaseUtils.AbsoluteToRelativePath(absolutePath);
             var existedMeshAsset = AssetDatabase.LoadAssetAtPath<Mesh>(relativePath);
             
             if (existedMeshAsset != null)

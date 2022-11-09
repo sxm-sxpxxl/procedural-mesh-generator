@@ -17,49 +17,29 @@ namespace Sxm.ProceduralMeshGenerator.Export
         {
             Assert.IsTrue(triangles.Count % 6 == 0);
             
-            var uniqueIndices = new List<int>(capacity: 4);
             for (int i = 0; i < triangles.Count; i += 6)
             {
                 builder.AppendFormat("{0} ", keyword);
                 
-                for (int j = 0; j < 6; j++)
+                // quad composition from an unique indices of two triangles
+                int v1 = triangles[i + 2];
+                int v2 = triangles[i + 1];
+                int v3 = triangles[i + 0];
+                int v4 = triangles[(i + 3) + 0];
+                
+                if (v4 == v1 || v4 == v2 || v4 == v3)
                 {
-                    int vertexIndex = triangles[i + j];
-                    
-                    if (uniqueIndices.Contains(vertexIndex) == false)
-                    {
-                        uniqueIndices.Add(vertexIndex);
-                    }
+                    v4 = v3;
+                    v1 = triangles[(i + 3) + 2];
+                    v2 = triangles[(i + 3) + 1];
+                    v3 = triangles[(i + 3) + 0];
                 }
                 
-                int i0;
-                int i1;
-                int i2;
-                int i3;
+                AppendVertexData(builder, verticesDataMap, vertexIndex: v1, whiteSpaceAfter: true);
+                AppendVertexData(builder, verticesDataMap, vertexIndex: v2, whiteSpaceAfter: true);
+                AppendVertexData(builder, verticesDataMap, vertexIndex: v3, whiteSpaceAfter: true);
+                AppendVertexData(builder, verticesDataMap, vertexIndex: v4, whiteSpaceAfter: false);
                 
-                // todo: add vertex traversal order definition 
-                bool isForward = true;
-                if (isForward == false)
-                {
-                    i0 = 0;
-                    i1 = 2;
-                    i2 = 3;
-                    i3 = 1;
-                }
-                else
-                {
-                    i0 = 0;
-                    i1 = 1;
-                    i2 = 3;
-                    i3 = 2;
-                }
-                
-                AppendVertexData(builder, verticesDataMap, uniqueIndices[i0], true);
-                AppendVertexData(builder, verticesDataMap, uniqueIndices[i1], true);
-                AppendVertexData(builder, verticesDataMap, uniqueIndices[i2], true);
-                AppendVertexData(builder, verticesDataMap, uniqueIndices[i3], false);
-                
-                uniqueIndices.Clear();
                 builder.AppendLine();
             }
         }
@@ -97,11 +77,11 @@ namespace Sxm.ProceduralMeshGenerator.Export
             bool whiteSpaceAfter
         )
         {
+            int positionIndex = verticesDataMap[vertexIndex].positionIndex;
             int uvIndex = verticesDataMap[vertexIndex].uvIndex;
             int normalIndex = verticesDataMap[vertexIndex].normalIndex;
             
-            // builder.AppendFormat("{0}/{1}/{2}", vertexIndex + 1, uvIndex + 1, normalIndex + 1);
-            builder.AppendFormat("{0}", vertexIndex + 1, uvIndex + 1, normalIndex + 1);
+            builder.AppendFormat("{0}/{1}/{2}", positionIndex + 1, uvIndex + 1, normalIndex + 1);
             if (whiteSpaceAfter)
             {
                 builder.Append(" ");
