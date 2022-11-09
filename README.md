@@ -3,7 +3,8 @@
   <img alt="mesh-modification-preview" src="https://user-images.githubusercontent.com/37039414/200845661-b2faeb53-a567-4cdb-acb1-f29b0d9e5815.gif" />
 </p>
 
-[![Unity Version](https://img.shields.io/badge/unity-2021.3%2B-blue)](https://unity3d.com/get-unity/download)
+[![Unity Version](https://img.shields.io/badge/unity-2020.3%2B-blue)](https://unity3d.com/get-unity/download)
+[![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/sxm-sxpxxl/parallax-effect/blob/master/LICENSE.md)
 
 ## About
 
@@ -29,3 +30,11 @@ A simple Unity editor tool of procedural mesh generating, modifying and exportin
      - **Bounds**
      - **Mesh**
 - [x] ☕ Custom editor inspector for more convenient work with the procedural generation component</br>
+
+## How To Install
+### Install via UPM (using Git URL)
+Please add the following line to the manifest file (`Packages/manifest.json`) to the `dependencies` section:
+
+```"com.sxm.procedural-mesh-generator": "https://github.com/sxm-sxpxxl/procedural-mesh-generator.git"```
+
+or just download and unzip the repository into the `Packages` folder.
