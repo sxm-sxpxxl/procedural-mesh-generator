@@ -1,6 +1,4 @@
-﻿using System.IO;
-using UnityEditor;
-using UnityEngine.UIElements;
+﻿using UnityEngine.UIElements;
 
 namespace Sxm.ProceduralMeshGenerator.Editor
 {
@@ -75,12 +73,7 @@ namespace Sxm.ProceduralMeshGenerator.Editor
             hierarchy.Add(_content);
             
             AddToClassList(FoldoutGroupClassName);
-            
-            var relativePath = AssetDatabaseUtils.GetAssetPathFor(nameof(FoldoutGroup), "Assets/Editor");
-            var ussPath = Path.ChangeExtension(relativePath, "uss");
-            
-            StyleSheet asset = AssetDatabase.LoadAssetAtPath<StyleSheet>(ussPath);
-            styleSheets.Add(asset);
+            styleSheets.Add(AssetDatabaseUtils.GetRelativeStyle());
         }
         
         private static void OnToggleChange(ChangeEvent<bool> evt)

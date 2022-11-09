@@ -19,7 +19,7 @@ namespace Sxm.ProceduralMeshGenerator.Editor
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
             var root = new VisualElement();
-            root.styleSheets.Add(AssetDatabaseUtils.GetRootStylesFor(nameof(AppliedMeshModifierPropertyDrawer)));
+            root.styleSheets.Add(AssetDatabaseUtils.GetRelativeStyle());
             root.AddToClassList("root");
             
             InitVisibilityToggle(root, property);

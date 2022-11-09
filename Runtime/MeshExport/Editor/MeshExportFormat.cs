@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Sxm.ProceduralMeshGenerator.Export
+namespace Sxm.ProceduralMeshGenerator.Export.Editor
 {
     public enum MeshExportFormat
     {

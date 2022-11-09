@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEditor.UIElements;
 using Sxm.ProceduralMeshGenerator.Creation;
 using Sxm.ProceduralMeshGenerator.Modification;
+using Sxm.ProceduralMeshGenerator.Export.Editor;
 using Object = UnityEngine.Object;
 
 namespace Sxm.ProceduralMeshGenerator.Editor
@@ -71,7 +72,7 @@ namespace Sxm.ProceduralMeshGenerator.Editor
 
         private void OnExportButtonClicked()
         {
-            _target.Export();
+            EditorMeshExporter.Export(_target.MeshForExport, _target.MeshExportFormat);
         }
 
         private void OnMeshUpdated()

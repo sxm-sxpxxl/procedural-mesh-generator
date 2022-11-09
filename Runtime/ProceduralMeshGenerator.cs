@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Sxm.ProceduralMeshGenerator.Creation;
 using Sxm.ProceduralMeshGenerator.Modification;
-using Sxm.ProceduralMeshGenerator.Export;
-#if UNITY_EDITOR
 using Sxm.ProceduralMeshGenerator.Export.Editor;
-#endif
 
 namespace Sxm.ProceduralMeshGenerator
 {
@@ -78,6 +75,10 @@ namespace Sxm.ProceduralMeshGenerator
         
         public string BoundsDebugInfo => _meshData?.BoundsInfo ?? NoneValue;
         
+        public Mesh MeshForExport => _meshData.MeshInstance;
+        
+        public MeshExportFormat MeshExportFormat => meshExportFormat;
+        
         private void OnDrawGizmos()
         {
             _meshCreatorContext.DrawDebug(transform, debugData);
@@ -87,11 +88,6 @@ namespace Sxm.ProceduralMeshGenerator
             {
                 selectedModifier.Target.DebugDraw();
             }
-        }
-        
-        public void Export()
-        {
-            EditorMeshExporter.Export(_meshData.MeshInstance, meshExportFormat);
         }
 #endif
         

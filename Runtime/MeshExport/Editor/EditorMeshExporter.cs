@@ -52,8 +52,10 @@ namespace Sxm.ProceduralMeshGenerator.Export.Editor
             
             formatData.saveHandler.Save(mesh, absolutePath);
             AssetDatabase.Refresh();
+
+            string relativePath = PathUtils.AbsoluteToRelativePath(absolutePath);
+            var savedAsset = AssetDatabase.LoadAssetAtPath<Mesh>(relativePath);
             
-            var savedAsset = AssetDatabaseUtils.LoadAssetAtAbsolutePath<Mesh>(absolutePath);
             if (savedAsset != null)
             {
                 EditorGUIUtility.PingObject(savedAsset);

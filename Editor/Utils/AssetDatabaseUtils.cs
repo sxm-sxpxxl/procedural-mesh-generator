@@ -1,32 +1,34 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Runtime.CompilerServices;
 using UnityEditor;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Sxm.ProceduralMeshGenerator.Editor
 {
     public static class AssetDatabaseUtils
     {
-        public static string GetAssetPathFor(string scriptName, string searchFolderPath = default)
+        public static StyleSheet GetRelativeStyle(string stylesRelativePath = "", [CallerFilePath] string absoluteScriptFilePath = "")
         {
-            var searchInFolders = string.IsNullOrEmpty(searchFolderPath) == false ? new string[] { searchFolderPath } : null;
-            var guids = AssetDatabase.FindAssets($"t:Script {scriptName}", searchInFolders);
+            var relativeScriptFilePath = PathUtils.AbsoluteToRelativePath(absoluteScriptFilePath);
 
-            if (guids.Length != 1)
+            if (string.IsNullOrEmpty(stylesRelativePath) == false)
             {
-                Debug.LogError($"Asset '{scriptName}.cs' was not found or more than one was found!");
-                return string.Empty;
+                string scriptFileName = Path.GetFileName(relativeScriptFilePath);
+                string parentRelativePath = PathUtils.AbsoluteToRelativePath(Directory.GetParent(relativeScriptFilePath)?.FullName);
+                
+                relativeScriptFilePath = $"{parentRelativePath}/{stylesRelativePath}/{scriptFileName}";
             }
             
-            return AssetDatabase.GUIDToAssetPath(guids[0]);
-        }
+            var ussPath = Path.ChangeExtension(relativeScriptFilePath, "uss");
+            var ussAsset = AssetDatabase.LoadAssetAtPath<StyleSheet>(ussPath);
 
-        public static StyleSheet GetRootStylesFor(string scriptName)
-        {
-            var relativePath = GetAssetPathFor(scriptName, "Assets/Editor");
-            var ussPath = Path.ChangeExtension(relativePath, "uss");
+            if (ussAsset == null)
+            {
+                throw new ArgumentException($"Style asset on path '{ussPath}' wasn't found.");
+            }
             
-            return AssetDatabase.LoadAssetAtPath<StyleSheet>(ussPath);
+            return ussAsset;
         }
     }
 }

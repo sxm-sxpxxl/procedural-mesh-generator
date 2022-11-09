@@ -14,7 +14,7 @@ namespace Sxm.ProceduralMeshGenerator.Export.Editor
                 return;
             }
             
-            string relativePath = AssetDatabaseUtils.AbsoluteToRelativePath(absolutePath);
+            string relativePath = PathUtils.AbsoluteToRelativePath(absolutePath);
             var existedMeshAsset = AssetDatabase.LoadAssetAtPath<Mesh>(relativePath);
             
             if (existedMeshAsset != null)

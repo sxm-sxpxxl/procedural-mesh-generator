@@ -2,7 +2,8 @@
     "name": "MeshExport.Editor",
     "rootNamespace": "",
     "references": [
-        "GUID:bced6003d3313a0478ad414fe9b9484a"
+        "GUID:bced6003d3313a0478ad414fe9b9484a",
+        "GUID:c2644bed8fcfaaa46ad58c7ffaa68ce1"
     ],
     "includePlatforms": [
         "Editor"
